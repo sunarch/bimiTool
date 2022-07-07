@@ -31,6 +31,7 @@ except ImportError:
 
 
 class BimiConfig:
+
     _logger = logging.getLogger('BimiConfig')
     _script_dir = os.path.realpath(os.path.dirname(sys.argv[0]))
     _config_file_path = os.path.join(_script_dir, 'bmt_config.yaml')
@@ -83,7 +84,7 @@ Euer BiMi"""}
         except IOError as io:
             if conf_file_path is None:
                 BimiConfig._logger.debug('No config file found. Writing one to %s', BimiConfig._config_file_path)
-                BimiConfig.writeConfig()
+                BimiConfig.write_config()
             else:
                 BimiConfig._logger.error('Reading file %s failed! Using default configuration. [io: %s]', BimiConfig._config_file_path, io)
             return
@@ -108,7 +109,7 @@ Euer BiMi"""}
         # Check for mandatory but missing options
         for k, v in BimiConfig._default_config_dict.items():
             if BimiConfig.option(k) is None:
-                BimiConfig.setOption(k, v)
+                BimiConfig.set_option(k, v)
 
     # Returns a copy of the specified option or None if option was not found
     #
@@ -128,9 +129,9 @@ Euer BiMi"""}
     #  \param conf_dict \b Dictionary (const) which will be copied and used as new config
     #
     @staticmethod
-    def setConfig(conf_dict):
+    def set_config(conf_dict):
         BimiConfig._config_dict = copy.deepcopy(conf_dict)
-        BimiConfig.writeConfig()
+        BimiConfig.write_config()
 
     # Sets or adds a config option in _config_dict
     #
@@ -138,7 +139,7 @@ Euer BiMi"""}
     #  \param value  \b Object (const) which will be assoziated with the key
     #
     @staticmethod
-    def setOption(option, value):
+    def set_option(option, value):
         if option not in BimiConfig._config_dict:
             BimiConfig._logger.debug('Adding option %s to _config_dict.', option)
         BimiConfig._config_dict[option] = copy.deepcopy(value)
@@ -149,7 +150,7 @@ Euer BiMi"""}
     #  TODO: enhance this function.
     #
     @staticmethod
-    def writeConfig():
+    def write_config():
         # Check if directories exist, if not create them
         if not os.path.isdir(os.path.dirname(BimiConfig._config_file_path)):
             try:

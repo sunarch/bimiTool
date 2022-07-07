@@ -54,6 +54,7 @@ import sys
 #    date              date and time of transaction
 #
 class BimiBase:
+
     def __init__(self, path):
         self._logger = logging.getLogger('BimiBase')
 
@@ -123,11 +124,11 @@ class BimiBase:
     #  \param account_name \b String containing the name of the user
     #  \param credit       \b Integer value of the credit to be added. Can be negative.
     #
-    def addAccount(self, account_name, credit=None):
+    def add_account(self, account_name, credit=None):
         self.cur.execute("INSERT INTO accounts VALUES(?,?)", [None, account_name.decode('utf-8')])
         self.dbcon.commit()
         if credit is not None:
-            self.addCredit(self.cur.lastrowid, credit)
+            self.add_credit(self.cur.lastrowid, credit)
 
     # Creates a transaction which adds credit to account_id.
     #
@@ -136,7 +137,7 @@ class BimiBase:
     #  \param account_id \b Integer that corresponds to an aid in table accounts
     #  \param credit     \b Integer value of the credit to be added. Can be negative.
     #
-    def addCredit(self, account_id, credit):
+    def add_credit(self, account_id, credit):
         self.cur.execute("SELECT EXISTS(SELECT * FROM transacts)")
         if self.cur.fetchone()[0] != 0:
             self.cur.execute("INSERT INTO transacts VALUES((SELECT MAX(tid) FROM transacts)+1,?,?,?,?,?)",
@@ -156,7 +157,7 @@ class BimiBase:
     #                                        integer number of empty bottles
     #                                        bool    if drink should show up in kings() call
     #
-    def addDrink(self, nspdfek=[]):
+    def add_drink(self, nspdfek=[]):
         nspdfek = [None] + nspdfek
         nspdfek.insert(7, False)
         nspdfek[1] = nspdfek[1].decode('utf-8')
@@ -168,10 +169,10 @@ class BimiBase:
     #  \param account_id        \b Integer that corresponds to an aid in table accounts
     #  \param drinkIDs_amounts  \b List that contains tuples (did, amount) to know the amount of drinks consumed
     #
-    def consumeDrinks(self, account_id, drinkIDs_amounts):
+    def consume_drinks(self, account_id, drink_ids_amounts):
         # Get drink informations from drinks table
         drink_infos = {}
-        for item in drinkIDs_amounts:
+        for item in drink_ids_amounts:
             self.cur.execute("SELECT sales_price,bottles_full,bottles_empty FROM drinks WHERE did=?", [item[0]])
             data = self.cur.fetchone()
             if not data:
@@ -203,13 +204,13 @@ class BimiBase:
         self.dbcon.commit()
 
         # update kings table
-        self.updateKing(account_id, drinkIDs_amounts)
+        self.update_king(account_id, drink_ids_amounts)
 
     # Deletes all references to account_id in the database
     #
     #  \param account_id \b Integer that corresponds to an aid in table accounts
     #
-    def delAccount(self, account_id):
+    def del_account(self, account_id):
         # delete account from account-table
         self.cur.execute("DELETE FROM accounts WHERE aid=?", [account_id])
         # delete all transactions related to the account
@@ -223,7 +224,7 @@ class BimiBase:
     #  \param drink_id \b Integer containing the did from table drinks
     #
     # TODO: delete drink if there are no transactions attached
-    def delDrink(self, drink_id):
+    def del_drink(self, drink_id):
         self.cur.execute("UPDATE drinks SET deleted=1, kings=0 WHERE did=?", [drink_id])
         self.dbcon.commit()
 
@@ -260,12 +261,12 @@ class BimiBase:
         return self.cur.fetchall()
 
     # Sets the name from account_id to name
-    def setAccountName(self, account_id, name):
+    def set_account_name(self, account_id, name):
         self.cur.execute("UPDATE accounts SET name=? WHERE aid=?", [name.decode('utf-8'), account_id])
         self.dbcon.commit()
 
     # Sets columns of drinks table, depending on values in nspdfek
-    def setDrink(self, drink_id, nspdfek=[]):
+    def set_drink(self, drink_id, nspdfek=[]):
         nspdfek[0] = nspdfek[0].decode('utf-8')
         if len(nspdfek) == 7:
             nspdfek.append(drink_id)
@@ -304,7 +305,7 @@ class BimiBase:
     #
     #  \param transact_id \b Integer containing the tid to be deleted
     #                        from table transacts.
-    def undoTransaction(self, transact_id):
+    def undo_transaction(self, transact_id):
         self.cur.execute("SELECT aid, did, count FROM transacts WHERE tid=?", [transact_id])
         aids_dids_counts = self.cur.fetchall()
         # Update drinks table
@@ -330,8 +331,8 @@ class BimiBase:
     #  \param account_id        \b Integer that corresponds to an aid in table accounts
     #  \param drinkIDs_amounts  \b List that contains tuples (did, amount) to know the amount of drinks consumed
     #
-    def updateKing(self, account_id, drinkIDs_amounts):
-        for item in drinkIDs_amounts:
+    def update_king(self, account_id, drink_ids_amounts):
+        for item in drink_ids_amounts:
             self.cur.execute("SELECT quaffed FROM kings WHERE aid=? AND did=?", [account_id, item[0]])
 
             # check if account,drink combination is already in database
