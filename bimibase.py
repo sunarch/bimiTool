@@ -105,12 +105,17 @@ class BimiBase:
         except sqlite3.OperationalError:
             self._logger.info('Found an existing data base @ ' + path)
             try:
-                self.cur.execute('select aid,name from accounts')
-                self.cur.execute('select tid,aid,did,count,value,date from transacts')
-                self.cur.execute('select did,name,sales_price,purchase_price,deposit,bottles_full from drinks')
-                self.cur.execute('select aid,did,quaffed from kings')
+                self.cur.execute('SELECT aid,name \
+                                  FROM accounts')
+                self.cur.execute('SELECT tid,aid,did,count,value,date \
+                                  FROM transacts')
+                self.cur.execute('SELECT did,name,sales_price,purchase_price,deposit,bottles_full \
+                                  FROM drinks')
+                self.cur.execute('SELECT aid,did,quaffed \
+                                  FROM kings')
             except sqlite3.OperationalError as err:
-                self._logger.critical('Oh noes, data base corrupt or created by an older version! [sqlite3: %s]', str(err))
+                self._logger.critical('Oh noes, data base corrupt or created by an older version! [sqlite3: %s]',
+                                      str(err))
                 sys.exit(1)
             self._logger.info('Yay, database seems to be usable.')
 
@@ -120,7 +125,9 @@ class BimiBase:
         :return: List of tuples containing (aid,name) from table accounts
         """
 
-        self.cur.execute('SELECT * FROM accounts ORDER BY name ASC')
+        self.cur.execute('SELECT * \
+                          FROM accounts \
+                          ORDER BY name ASC')
         return self.cur.fetchall()
 
     def add_account(self, account_name, credit=None):
@@ -131,7 +138,9 @@ class BimiBase:
         :return:
         """
 
-        self.cur.execute('INSERT INTO accounts VALUES(?,?)', [None, account_name])
+        self.cur.execute('INSERT INTO accounts \
+                          VALUES(?,?)',
+                         [None, account_name])
         self.dbcon.commit()
         if credit is not None:
             self.add_credit(self.cur.lastrowid, credit)
@@ -148,10 +157,12 @@ class BimiBase:
 
         self.cur.execute('SELECT EXISTS(SELECT * FROM transacts)')
         if self.cur.fetchone()[0] != 0:
-            self.cur.execute('INSERT INTO transacts VALUES((SELECT MAX(tid) FROM transacts)+1,?,?,?,?,?)',
+            self.cur.execute('INSERT INTO transacts \
+                             VALUES((SELECT MAX(tid) FROM transacts)+1,?,?,?,?,?)',
                              [int(account_id), 0, 1, int(credit), datetime.datetime.now()])
         else:
-            self.cur.execute('INSERT INTO transacts VALUES(1,?,?,?,?,?)',
+            self.cur.execute('INSERT INTO transacts \
+                              VALUES(1,?,?,?,?,?)',
                              [int(account_id), 0, 1, int(credit), datetime.datetime.now()])
         self.dbcon.commit()
 
@@ -171,7 +182,9 @@ class BimiBase:
         nspdfek = [None] + nspdfek
         nspdfek.insert(7, False)
         nspdfek[1] = nspdfek[1]
-        self.cur.execute('INSERT INTO drinks VALUES(?,?,?,?,?,?,?,?,?)', nspdfek)
+        self.cur.execute('INSERT INTO drinks \
+                          VALUES(?,?,?,?,?,?,?,?,?)',
+                         nspdfek)
         self.dbcon.commit()
 
     def consume_drinks(self, account_id, drink_ids_amounts):
@@ -185,10 +198,13 @@ class BimiBase:
         # Get drink informations from drinks table
         drink_infos = {}
         for item in drink_ids_amounts:
-            self.cur.execute('SELECT sales_price,bottles_full,bottles_empty FROM drinks WHERE did=?', [item[0]])
+            self.cur.execute('SELECT sales_price,bottles_full,bottles_empty \
+                              FROM drinks WHERE did=?',
+                             [item[0]])
             data = self.cur.fetchone()
             if not data:
-                self._logger.error('DrinkID %d in table drinks not found. Can\'t consume this drink :(', item[0])
+                self._logger.error('DrinkID %d in table drinks not found. Can\'t consume this drink :(',
+                                   item[0])
                 return
             # Check if drink ist listed multiple times
             if item[0] in drink_infos:
@@ -200,7 +216,8 @@ class BimiBase:
 
         # get max(tid)
         new_tid = 0
-        for item in self.cur.execute('SELECT MAX(tid) FROM transacts'):
+        for item in self.cur.execute('SELECT MAX(tid) \
+                                      FROM transacts'):
             new_tid = item[0]+1
         if new_tid == sys.maxsize:
             self._logger.error('TID in table transacts reached maxINT! Can\'t commit any transactions X_X')
@@ -208,11 +225,19 @@ class BimiBase:
 
         # update transacts and drinks tables
         for k, v in drink_infos.items():
-            self.cur.execute('INSERT INTO transacts VALUES(?,?,?,?,?,?)', [new_tid, account_id, k, v[0], -v[1], datetime.datetime.now()])
+            self.cur.execute('INSERT INTO transacts \
+                              VALUES(?,?,?,?,?,?)',
+                             [new_tid, account_id, k, v[0], -v[1], datetime.datetime.now()])
             if v[2]-v[0] < 0:
-                self.cur.execute('UPDATE drinks SET bottles_full=?,bottles_empty=? WHERE did=?', [0, v[3]+v[0], k])
+                self.cur.execute('UPDATE drinks \
+                                  SET bottles_full=?,bottles_empty=? \
+                                  WHERE did=?',
+                                 [0, v[3]+v[0], k])
             else:
-                self.cur.execute('UPDATE drinks SET bottles_full=?,bottles_empty=? WHERE did=?', [v[2]-v[0], v[3]+v[0], k])
+                self.cur.execute('UPDATE drinks \
+                                  SET bottles_full=?,bottles_empty=? \
+                                  WHERE did=?',
+                                 [v[2]-v[0], v[3]+v[0], k])
         self.dbcon.commit()
 
         # update kings table
@@ -226,11 +251,17 @@ class BimiBase:
         """
 
         # delete account from account-table
-        self.cur.execute('DELETE FROM accounts WHERE aid=?', [account_id])
+        self.cur.execute('DELETE FROM accounts \
+                          WHERE aid=?',
+                         [account_id])
         # delete all transactions related to the account
-        self.cur.execute('DELETE FROM transacts WHERE aid=?', [account_id])
+        self.cur.execute('DELETE FROM transacts \
+                          WHERE aid=?',
+                         [account_id])
         # delete account from kings
-        self.cur.execute('DELETE FROM kings WHERE aid=?', [account_id])
+        self.cur.execute('DELETE FROM kings \
+                          WHERE aid=?',
+                         [account_id])
         self.dbcon.commit()
 
     def del_drink(self, drink_id):
@@ -242,7 +273,10 @@ class BimiBase:
         :return:
         """
 
-        self.cur.execute('UPDATE drinks SET deleted=1, kings=0 WHERE did=?', [drink_id])
+        self.cur.execute('UPDATE drinks \
+                          SET deleted=1, kings=0 \
+                          WHERE did=?',
+                         [drink_id])
         self.dbcon.commit()
 
     def drinks(self):
@@ -268,21 +302,24 @@ class BimiBase:
                  ascending by accounts.name
         """
 
-        self.cur.execute('''SELECT name, dname, MAX(total)
-                            FROM (SELECT k.aid, d.name AS dname, SUM(k.quaffed) AS total
-                                  FROM kings AS k
-                                  JOIN drinks AS d ON k.did=d.did
-                                  WHERE d.name IN (SELECT DISTINCT name FROM drinks WHERE kings=1 AND deleted=0)
-                                  GROUP BY k.aid, d.name) AS b
-                            JOIN accounts AS a ON b.aid=a.aid
-                            GROUP BY dname
-                            ORDER BY name ASC''')
+        self.cur.execute('SELECT name, dname, MAX(total) \
+                          FROM (SELECT k.aid, d.name AS dname, SUM(k.quaffed) AS total \
+                              FROM kings AS k \
+                              JOIN drinks AS d ON k.did=d.did \
+                              WHERE d.name IN (SELECT DISTINCT name FROM drinks WHERE kings=1 AND deleted=0) \
+                              GROUP BY k.aid, d.name) AS b \
+                          JOIN accounts AS a ON b.aid=a.aid \
+                          GROUP BY dname \
+                          ORDER BY name ASC')
         return self.cur.fetchall()
 
     def set_account_name(self, account_id, name):
         """Sets the name from account_id to name"""
 
-        self.cur.execute('UPDATE accounts SET name=? WHERE aid=?', [name, account_id])
+        self.cur.execute('UPDATE accounts \
+                          SET name=? \
+                          WHERE aid=?',
+                         [name, account_id])
         self.dbcon.commit()
 
     def set_drink(self, drink_id, nspdfek=[]):
@@ -291,17 +328,20 @@ class BimiBase:
         nspdfek[0] = nspdfek[0]
         if len(nspdfek) == 7:
             nspdfek.append(drink_id)
-            self.cur.execute('UPDATE drinks SET name=?,\
-                                                sales_price=?,\
-                                                purchase_price=?,\
-                                                deposit=?,\
-                                                bottles_full=?,\
-                                                bottles_empty=?,\
-                                                kings=? \
-                                            WHERE did=?', nspdfek)
+            self.cur.execute('UPDATE drinks \
+                              SET name=?,\
+                                  sales_price=?,\
+                                  purchase_price=?,\
+                                  deposit=?,\
+                                  bottles_full=?,\
+                                  bottles_empty=?,\
+                                  kings=? \
+                              WHERE did=?',
+                             nspdfek)
             self.dbcon.commit()
         else:
-            self._logger.debug('Invalid parameter count (%i), nothing done!', len(nspdfek)-1)
+            self._logger.debug('Invalid parameter count (%i), nothing done!',
+                               len(nspdfek) - 1)
 
     def transactions(self, account_id):
         """Returns a list including all transactions of an user
@@ -312,10 +352,12 @@ class BimiBase:
                  one bottle, i.e. it is negative.
         """
 
-        self.cur.execute('SELECT tid, name, count, value, date FROM (SELECT * FROM transacts WHERE aid=?) AS t \
+        self.cur.execute('SELECT tid, name, count, value, date \
+                          FROM (SELECT * FROM transacts WHERE aid=?) AS t \
                           LEFT OUTER JOIN drinks \
-                                       ON drinks.did=t.did \
-                          ORDER BY tid ASC', [account_id])
+                          ON drinks.did=t.did \
+                          ORDER BY tid ASC',
+                         [account_id])
         balance_list = self.cur.fetchall()
         return balance_list
 
@@ -330,24 +372,39 @@ class BimiBase:
         :return:
         """
 
-        self.cur.execute('SELECT aid, did, count FROM transacts WHERE tid=?', [transact_id])
+        self.cur.execute('SELECT aid, did, count \
+                          FROM transacts WHERE tid=?',
+                         [transact_id])
         aids_dids_counts = self.cur.fetchall()
         # Update drinks table
         for item in aids_dids_counts:
             if item[1] != 0:
-                self.cur.execute('SELECT bottles_full, bottles_empty FROM drinks WHERE did=?', [item[1]])
+                self.cur.execute('SELECT bottles_full, bottles_empty \
+                                  FROM drinks \
+                                  WHERE did=?',
+                                 [item[1]])
                 full_empty = self.cur.fetchone()
-                self.cur.execute('UPDATE drinks SET bottles_full=?, bottles_empty=? WHERE did=?',
+                self.cur.execute('UPDATE drinks \
+                                  SET bottles_full=?, bottles_empty=? \
+                                  WHERE did=?',
                                  [full_empty[0]+item[2], full_empty[1]-item[2], item[1]])
         # Update kings table
         for item in aids_dids_counts:
             if item[1] != 0:
-                self.cur.execute('SELECT quaffed FROM kings WHERE aid=? AND did=?', [item[0], item[1]])
+                self.cur.execute('SELECT quaffed \
+                                  FROM kings \
+                                  WHERE aid=? AND did=?',
+                                 [item[0], item[1]])
                 actual_quaffed = self.cur.fetchone()
                 if actual_quaffed:
-                    self.cur.execute('UPDATE kings SET quaffed=? WHERE aid=? AND did=?', [actual_quaffed[0]-item[2], item[0], item[1]])
+                    self.cur.execute('UPDATE kings \
+                                      SET quaffed=? \
+                                      WHERE aid=? AND did=?',
+                                     [actual_quaffed[0]-item[2], item[0], item[1]])
         # Update transacts table
-        self.cur.execute('DELETE FROM transacts WHERE tid=?', [transact_id])
+        self.cur.execute('DELETE FROM transacts \
+                          WHERE tid=?',
+                         [transact_id])
         self.dbcon.commit()
 
     def update_king(self, account_id, drink_ids_amounts):
@@ -359,14 +416,21 @@ class BimiBase:
         """
 
         for item in drink_ids_amounts:
-            self.cur.execute('SELECT quaffed FROM kings WHERE aid=? AND did=?', [account_id, item[0]])
+            self.cur.execute('SELECT quaffed \
+                              FROM kings \
+                              WHERE aid=? AND did=?',
+                             [account_id, item[0]])
 
             # check if account,drink combination is already in database
             actual_quaffed = self.cur.fetchone()
             if actual_quaffed:
                 # add number of quaffed drinks to existing number
-                self.cur.execute('UPDATE kings SET quaffed=? WHERE aid=? AND did=?',
+                self.cur.execute('UPDATE kings \
+                                  SET quaffed=? \
+                                  WHERE aid=? AND did=?',
                                  [actual_quaffed[0] + item[1], account_id, item[0]])
             else:
-                self.cur.execute('INSERT INTO kings VALUES(?,?,?)', [account_id, item[0], item[1]])
+                self.cur.execute('INSERT INTO kings \
+                                  VALUES(?,?,?)',
+                                 [account_id, item[0], item[1]])
         self.dbcon.commit()

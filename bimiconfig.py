@@ -88,27 +88,33 @@ Euer BiMi'''}
             yaml_file = open(BimiConfig._config_file_path, 'r')
         except IOError as io:
             if conf_file_path is None:
-                BimiConfig._logger.debug('No config file found. Writing one to %s', BimiConfig._config_file_path)
+                BimiConfig._logger.debug('No config file found. Writing one to %s',
+                                         BimiConfig._config_file_path)
                 BimiConfig.write_config()
             else:
-                BimiConfig._logger.error('Reading file %s failed! Using default configuration. [io: %s]', BimiConfig._config_file_path, io)
+                BimiConfig._logger.error('Reading file %s failed! Using default configuration. [io: %s]',
+                                         BimiConfig._config_file_path, io)
             return
 
         try:
             BimiConfig._config_dict = yaml.safe_load(yaml_file)
         except yaml.YAMLError as yamlerr:
             yaml_file.close()
-            BimiConfig._logger.error('%s is not a valid config file! Using default configuration. [yaml: %s]', BimiConfig._config_file_path, yamlerr)
+            BimiConfig._logger.error('%s is not a valid config file! Using default configuration. [yaml: %s]',
+                                     BimiConfig._config_file_path, yamlerr)
             return
         yaml_file.close()
 
         if not BimiConfig._config_dict:
             BimiConfig._config_dict = BimiConfig._default_config_dict
-            BimiConfig._logger.debug('No options specified in %s. Using default configuration.', BimiConfig._config_file_path)
+            BimiConfig._logger.debug('No options specified in %s. Using default configuration.',
+                                     BimiConfig._config_file_path)
             return
         elif type(BimiConfig._config_dict) is not dict:
             BimiConfig._config_dict = BimiConfig._default_config_dict
-            BimiConfig._logger.error('%s is not a valid config file! Using default configuration. [yaml: No dictionary found!]', BimiConfig._config_file_path)
+            BimiConfig._logger.error('%s is not a valid config file! Using default configuration. ' +
+                                     '[yaml: No dictionary found!]',
+                                     BimiConfig._config_file_path)
             return
 
         # Check for mandatory but missing options
@@ -127,7 +133,8 @@ Euer BiMi'''}
         try:
             return copy.deepcopy(BimiConfig._config_dict[str(option)])
         except KeyError:
-            BimiConfig._logger.debug('Option %s not found!', option)
+            BimiConfig._logger.debug('Option %s not found!',
+                                     option)
             return None
 
     @staticmethod
@@ -151,7 +158,8 @@ Euer BiMi'''}
         """
 
         if option not in BimiConfig._config_dict:
-            BimiConfig._logger.debug('Adding option %s to _config_dict.', option)
+            BimiConfig._logger.debug('Adding option %s to _config_dict.',
+                                     option)
         BimiConfig._config_dict[option] = copy.deepcopy(value)
 
     @staticmethod
@@ -184,4 +192,5 @@ Euer BiMi'''}
                 yaml.safe_dump(dump_dict, stream=yaml_file,
                                default_flow_style=False, allow_unicode=True, encoding='utf-8')
         except IOError as io:
-            BimiConfig._logger.error('Oh noes, file %s not writeable! [io: %s]', BimiConfig._config_file_path, io)
+            BimiConfig._logger.error('Oh noes, file %s not writeable! [io: %s]',
+                                     BimiConfig._config_file_path, io)

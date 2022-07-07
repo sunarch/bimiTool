@@ -99,7 +99,8 @@ class BiMiTool:
                    'quit_activate': Gtk.main_quit}
             self.gui.connect_signals(dic)
         except:
-            self._logger.critical('Autoconnection of widgets failed! Check if %s exists.', BimiConfig.option('gui_path'))
+            self._logger.critical('Autoconnection of widgets failed! Check if %s exists.',
+                                  BimiConfig.option('gui_path'))
             sys.exit(1)
         self.main_window = self.gui.get_object('main_window')
         self.accounts_context_menu = self.gui.get_object('accounts_menu')
@@ -189,7 +190,7 @@ class BiMiTool:
 
         self.account_window.hide()
         acc_name = self.gui.get_object('edit_acc_entry').get_text()
-        credit = int(round(100*self.gui.get_object('edit_acc_spinbutton').get_value()))
+        credit = int(round(100 * self.gui.get_object('edit_acc_spinbutton').get_value()))
         if self.edit_acc_infos:
             if acc_name != self.edit_acc_infos[1]:
                 self.db.set_account_name(self.edit_acc_infos[0], acc_name)
@@ -318,9 +319,11 @@ class BiMiTool:
         :return: Dictionary containing the 'body' and 'subject' strings of the credit mail
         """
 
-        mail_body = BimiConfig.option('credit_mail_text').replace('$amount', str(credit) + BimiConfig.option('currency'))\
-                                                         .replace('$name', account_name)
-        mail_subj = BimiConfig.option('credit_mail_subject').replace('$amount', str(credit) + BimiConfig.option('currency'))
+        mail_body = BimiConfig.option('credit_mail_text') \
+            .replace('$amount', str(credit) + BimiConfig.option('currency')) \
+            .replace('$name', account_name)
+        mail_subj = BimiConfig.option('credit_mail_subject') \
+            .replace('$amount', str(credit) + BimiConfig.option('currency'))
         return {'body': mail_body, 'subject': mail_subj}
 
     def generate_summary_mail(self):
@@ -342,15 +345,16 @@ class BiMiTool:
                     len_acc = max(map(lambda x: len(x[0]), acc_drink_quaffed))
                     len_drink = max(map(lambda x: len(x[1]), acc_drink_quaffed))
                     len_quaffed = max(map(lambda x: len(str(x[2])), acc_drink_quaffed))
-                    parts[2] = parts[2].replace('$name', '{name:<'+str(len_acc)+'}', 1)
-                    parts[2] = parts[2].replace('$drink', '{drink:<'+str(len_drink)+'}', 1)
-                    parts[2] = parts[2].replace('$amount', '{amount:>'+str(len_quaffed)+'}', 1)
+                    parts[2] = parts[2].replace('$name', '{name:<' + str(len_acc) + '}', 1)
+                    parts[2] = parts[2].replace('$drink', '{drink:<' + str(len_drink) + '}', 1)
+                    parts[2] = parts[2].replace('$amount', '{amount:>' + str(len_quaffed) + '}', 1)
 
                     for item in acc_drink_quaffed:
                         try:
                             insert = str(parts[0]) + str(parts[2]).format(name=item[0], drink=item[1], amount=item[2])
                         except Exception as err:
-                            self._logger.error('Line %s in file %s is not as expected! [err: %s]', str(i+1), BimiConfig.option('mail_path'), err)
+                            self._logger.error('Line %s in file %s is not as expected! [err: %s]',
+                                               str(i + 1), BimiConfig.option('mail_path'), err)
                             return
                         mail_body += insert + '\n'
                 else:
@@ -363,25 +367,27 @@ class BiMiTool:
 
                 accnames_balances = []
                 for aid, name in self.db.accounts():
-                    balance = sum(map(lambda x: x[2]*x[3], self.db.transactions(aid))) / 100.0 - BimiConfig.option('deposit')
+                    balance = sum(map(lambda x: x[2] * x[3], self.db.transactions(aid))) / \
+                              100.0 - BimiConfig.option('deposit')
                     accnames_balances.append((name, balance))
 
                 # Check if there are accounts in DB
                 if accnames_balances:
                     len_acc = max(map(lambda x: len(x[0]), accnames_balances))
                     len_balance = max(map(lambda x: len(str(int(x[1]))), accnames_balances)) + 3  # +3 because .00
-                    parts[2] = parts[2].replace('$name', '{name:<'+str(len_acc)+'}', 1)
-                    parts[2] = parts[2].replace('$balance', '{balance:>'+str(len_balance)+'.2f}'+cur_symbol, 1)
+                    parts[2] = parts[2].replace('$name', '{name:<' + str(len_acc) + '}', 1)
+                    parts[2] = parts[2].replace('$balance', '{balance:>' + str(len_balance)+'.2f}' + cur_symbol, 1)
 
                     for item in accnames_balances:
                         try:
                             insert = parts[0] + parts[2].format(name=item[0], balance=item[1])
                         except Exception as err:
-                            self._logger.error('\'$accInfos:\' line in %s file is broken! [err: %s]', BimiConfig.option('mail_path'), err)
+                            self._logger.error('\'$accInfos:\' line in %s file is broken! [err: %s]',
+                                               BimiConfig.option('mail_path'), err)
                             return
                         mail_body += insert + '\n'
                 else:
-                    mail_body += '{}No one lives in BimiTool-land ;_;'.format(parts[0]) + '\n'
+                    mail_body += f'{parts[0]}No one lives in BimiTool-land ;_;\n'
             else:
                 mail_body += line + '\n'
 
@@ -406,13 +412,13 @@ class BiMiTool:
         # Build mailto url from dictionary
         if mail_program is not None:
             if 'to' in mailto_dict:
-                mailto_url = 'mailto:{}?'.format(urllib.parse.quote(mailto_dict['to'].encode('utf-8')))
+                mailto_url = 'mailto:{}?'.format(urllib.parse.quote(mailto_dict['to'].encode('UTF-8')))
             else:
                 mailto_url = 'mailto:?'
             if 'subject' in mailto_dict:
-                mailto_url += 'subject={}&'.format(urllib.parse.quote(mailto_dict['subject'].encode('utf-8')))
+                mailto_url += 'subject={}&'.format(urllib.parse.quote(mailto_dict['subject'].encode('UTF-8')))
             if 'body' in mailto_dict:
-                mailto_url += 'body={}'.format(urllib.parse.quote(mailto_dict['body'].encode('utf-8')))
+                mailto_url += 'body={}'.format(urllib.parse.quote(mailto_dict['body'].encode('UTF-8')))
         else:
             return mail_program
 
@@ -420,7 +426,8 @@ class BiMiTool:
         if mail_program == 'icedove' or mail_program == 'thunderbird':
             process = subprocess.Popen([mail_program, '-compose', mailto_url], stdout=subprocess.PIPE)
             if process.communicate()[0] != '':
-                self._logger.debug('%s: %s', mail_program, process.communicate()[0])
+                self._logger.debug('%s: %s',
+                                   mail_program, process.communicate()[0])
         return mail_program
 
     def pop_add_acc_window(self, widget):
@@ -447,7 +454,7 @@ class BiMiTool:
         self.gui.get_object('edit_drink_entry').set_text('Insert name')
         self.gui.get_object('edit_drink_entry').select_region(0, -1)
         for i in range(5):
-            self.gui.get_object('edit_drink_spinbutton'+str(i)).set_value(0)
+            self.gui.get_object('edit_drink_spinbutton' + str(i)).set_value(0)
         self.drink_window.show()
 
     def pop_edit_acc_window(self, widget):
@@ -477,7 +484,7 @@ class BiMiTool:
         self.gui.get_object('edit_drink_entry').set_text(self.edit_drink_infos[1])
         cols = [2, 4, 6, 8, 9]
         for i in range(5):
-            self.gui.get_object('edit_drink_spinbutton'+str(i)).set_value(self.edit_drink_infos[cols[i]])
+            self.gui.get_object('edit_drink_spinbutton' + str(i)).set_value(self.edit_drink_infos[cols[i]])
         self.drink_window.show()
 
     def show_credit_mail(self, account_name, credit):
@@ -546,11 +553,11 @@ class BiMiTool:
         cur_symbol = BimiConfig.option('currency')
         for item in self.db.drinks():
             self.drinks_list.append([item[0], item[1],
-                                     item[2]/100.0, str(item[2]/100.0) + cur_symbol,
-                                     item[3]/100.0, str(item[3]/100.0) + cur_symbol,
-                                     item[4]/100.0, str(item[4]/100.0) + cur_symbol,
+                                     item[2] / 100.0, str(item[2] / 100.0) + cur_symbol,
+                                     item[3] / 100.0, str(item[3] / 100.0) + cur_symbol,
+                                     item[4] / 100.0, str(item[4] / 100.0) + cur_symbol,
                                      item[5], item[6], item[7],
-                                     item[1] + ' @ ' + str(item[2]/100.0) + cur_symbol])
+                                     item[1] + ' @ ' + str(item[2] / 100.0) + cur_symbol])
         self.update_drinks_combo_boxes()
 
     def update_transactions_view(self, widget):
@@ -567,14 +574,14 @@ class BiMiTool:
             tid_date_value = [self.transactions[0][0], str(self.transactions[0][4].date()), 0.0]
             for i, item in enumerate(self.transactions):
                 if tid_date_value[0] == item[0]:
-                    tid_date_value[2] += item[3]/100.0*item[2]
+                    tid_date_value[2] += item[3] / 100.0 * item[2]
                 else:
                     tid_date_value[2] = str(tid_date_value[2]) + cur_symbol
                     self.transactions_list.append(tid_date_value)
                     tid_date_value[0] = item[0]
                     tid_date_value[1] = str(item[4].date())
-                    tid_date_value[2] = item[3]/100.0*item[2]
-                total += item[3]/100.0*item[2]
+                    tid_date_value[2] = item[3] / 100.0 * item[2]
+                total += item[3] / 100.0 * item[2]
             tid_date_value[2] = str(tid_date_value[2]) + cur_symbol
             self.transactions_list.append(tid_date_value)
             if 0.009 < BimiConfig.option('deposit'):
@@ -607,7 +614,8 @@ if __name__ == '__main__':
     if options.debug:
         log_lvl = logging.DEBUG
     logging.basicConfig(level=log_lvl,
-                        format='%(asctime)s [%(levelname)8s] Module %(name)s in line %(lineno)s %(funcName)s(): %(message)s',
+                        format='%(asctime)s [%(levelname)8s] ' +
+                               'Module %(name)s in line %(lineno)s %(funcName)s(): %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
 
     # Setup config
