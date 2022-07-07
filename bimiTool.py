@@ -51,9 +51,17 @@ class BiMiTool:
         self.drinks_comboxes_spinbuttons = []  # Contains tuples (combobox,spinbutton)
         self.transactions_list = Gtk.ListStore(int, str, str)
         self.accounts_list = Gtk.ListStore(int, str)
-        # \var self.drinks_list for each float a str for visualisation
-        # (did, dname, sPrice, str sPrice, pPrice, str pPrice, deposit, str deposit, fBottles, eBottles, kings, str for comboboxes)
-        self.drinks_list = Gtk.ListStore(int, str, float, str, float, str, float, str, int, int, bool, str)
+
+        # for each float a str for visualisation
+        self.drinks_list = Gtk.ListStore(int,         # did
+                                         str,         # dname
+                                         float, str,  # sPrice, str sPrice
+                                         float, str,  # pPrice, str pPrice
+                                         float, str,  # deposit, str deposit
+                                         int,         # fBottles
+                                         int,         # eBottles
+                                         bool,        # kings
+                                         str)         # str for comboboxes
 
         self._logger = logging.getLogger('BiMiTool')
 
