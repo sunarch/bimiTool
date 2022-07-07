@@ -19,15 +19,8 @@
 import datetime
 import logging
 import os
+import sqlite3
 import sys
-
-try:
-    from pysqlite2 import dbapi2 as sqlite3
-except ImportError:
-    print("------------------------------------------------------------------------------")
-    print("| Check your python sqlite3 setup! (Debian/Ubuntu: install python-pysqlite2) |")
-    print("------------------------------------------------------------------------------")
-    sys.exit(1)
 
 
 ## sqlite3 data base interface
@@ -69,9 +62,9 @@ class BimiBase:
             try:
                 os.makedirs(os.path.dirname(path))
             except OSError as oe:
-                self._logger.error('Not possible to create directory %s! No database available! [os: %s]',\
+                self._logger.error('Not possible to create directory %s! No database available! [os: %s]',
                                          os.path.dirname(path), oe)
-                raise OSError('Not possible to create directory %s! No database available! [os: %s]',\
+                raise OSError('Not possible to create directory %s! No database available! [os: %s]',
                                os.path.dirname(path), oe)
 
         self.dbcon = sqlite3.connect(path,detect_types=sqlite3.PARSE_DECLTYPES)
@@ -149,10 +142,10 @@ class BimiBase:
     def addCredit(self, account_id, credit):
         self.cur.execute("SELECT EXISTS(SELECT * FROM transacts)")
         if self.cur.fetchone()[0] != 0:
-            self.cur.execute("INSERT INTO transacts VALUES((SELECT MAX(tid) FROM transacts)+1,?,?,?,?,?)",\
+            self.cur.execute("INSERT INTO transacts VALUES((SELECT MAX(tid) FROM transacts)+1,?,?,?,?,?)",
                              [int(account_id), 0, 1, int(credit), datetime.datetime.now()])
         else:
-            self.cur.execute("INSERT INTO transacts VALUES(1,?,?,?,?,?)",\
+            self.cur.execute("INSERT INTO transacts VALUES(1,?,?,?,?,?)",
                              [int(account_id), 0, 1, int(credit), datetime.datetime.now()])
         self.dbcon.commit()
 
@@ -200,13 +193,13 @@ class BimiBase:
         # get max(tid)
         new_tid = 0
         for item in self.cur.execute("SELECT MAX(tid) FROM transacts"):
-            new_tid = item[0]+1;
-        if new_tid == sys.maxint:
+            new_tid = item[0]+1
+        if new_tid == sys.maxsize:
             self._logger.error("TID in table transacts reached maxINT! Can't commit any transactions X_X")
             return
 
         # update transacts and drinks tables
-        for k,v in drink_infos.iteritems():
+        for k,v in drink_infos.items():
             self.cur.execute("INSERT INTO transacts VALUES(?,?,?,?,?,?)", [new_tid, account_id, k, v[0], -v[1], datetime.datetime.now()])
             if v[2]-v[0] < 0:
                 self.cur.execute("UPDATE drinks SET bottles_full=?,bottles_empty=? WHERE did=?", [0, v[3]+v[0], k])
@@ -359,8 +352,8 @@ class BimiBase:
             actual_quaffed = self.cur.fetchone()
             if actual_quaffed:
                 # add number of quaffed drinks to existing number
-                self.cur.execute("UPDATE kings SET quaffed=? WHERE aid=? AND did=?",\
-                                  [actual_quaffed[0] + item[1], account_id, item[0]])
+                self.cur.execute("UPDATE kings SET quaffed=? WHERE aid=? AND did=?",
+                                 [actual_quaffed[0] + item[1], account_id, item[0]])
             else:
                 self.cur.execute("INSERT INTO kings VALUES(?,?,?)", [account_id, item[0], item[1]])
         self.dbcon.commit()

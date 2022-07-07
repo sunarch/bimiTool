@@ -22,8 +22,8 @@ import unittest
 
 import test_bimibase
 
-logging.basicConfig(level=logging.WARNING,\
-                    format='%(asctime)s [%(levelname)8s] Module %(name)s in %(funcName)s(%(lineno)s): %(message)s',\
+logging.basicConfig(level=logging.WARNING,
+                    format='%(asctime)s [%(levelname)8s] Module %(name)s in %(funcName)s(%(lineno)s): %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 if __name__ == '__main__':

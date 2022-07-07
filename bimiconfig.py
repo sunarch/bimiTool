@@ -16,7 +16,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.    #
 # ----------------------------------------------------------------------------#
 
-from copy import copy, deepcopy
+import copy
 import logging
 import os
 import sys
@@ -25,7 +25,7 @@ try:
     import yaml
 except ImportError:
     print("----------------------------------------------------------------------")
-    print "| Check your python yaml setup! (Debian/Ubuntu: install python-yaml) |"
+    print("| Check your python yaml setup! (Debian/Ubuntu: install python-yaml) |")
     print("----------------------------------------------------------------------")
     sys.exit(1)
 
@@ -39,7 +39,7 @@ class BimiConfig:
     _default_config_dict = {'db_path': os.path.join(_script_dir,'bmt_db.sqlite'),
                             'gui_path': os.path.join(_script_dir,'bmt.glade'),
                             'mail_path': os.path.join(_script_dir,'mail.txt'),
-                            'currency': '€'.decode('utf-8'),
+                            'currency': '€',
                             'deposit': 0.0,
                             'num_comboboxes': 4,
                             'mail_text':\
@@ -65,7 +65,7 @@ Euer BiMi"""               }
     #
     @staticmethod
     def config():
-        return deepcopy(BimiConfig._config_dict)
+        return copy.deepcopy(BimiConfig._config_dict)
 
 
     ## Loads config options from a file or sets the defaults
@@ -121,7 +121,7 @@ Euer BiMi"""               }
     @staticmethod
     def option(option):
         try:
-            return deepcopy(BimiConfig._config_dict[str(option)])
+            return copy.deepcopy(BimiConfig._config_dict[str(option)])
         except KeyError:
             BimiConfig._logger.debug('Option %s not found!',option)
             return None
@@ -133,7 +133,7 @@ Euer BiMi"""               }
     #
     @staticmethod
     def setConfig(conf_dict):
-        BimiConfig._config_dict = deepcopy(conf_dict)
+        BimiConfig._config_dict = copy.deepcopy(conf_dict)
         BimiConfig.writeConfig()
 
 
@@ -146,7 +146,7 @@ Euer BiMi"""               }
     def setOption(option, value):
         if option not in BimiConfig._config_dict:
             BimiConfig._logger.debug('Adding option %s to _config_dict.',option)
-        BimiConfig._config_dict[option] = deepcopy(value)
+        BimiConfig._config_dict[option] = copy.deepcopy(value)
 
 
     ## Writes _config_dict to a yaml file.
@@ -161,11 +161,11 @@ Euer BiMi"""               }
             try:
                 os.makedirs(os.path.dirname(BimiConfig._config_file_path))
             except OSError as oe:
-                BimiConfig._logger.error('Not possible to create directory %s! Config not safe O_O [os: %s]',\
+                BimiConfig._logger.error('Not possible to create directory %s! Config not safe O_O [os: %s]',
                                          os.path.dirname(BimiConfig._config_file_path), oe)
 
         # Remove specified options before dumping
-        dump_dict = deepcopy(BimiConfig._config_dict)
+        dump_dict = copy.deepcopy(BimiConfig._config_dict)
         for item in BimiConfig._rm_opts:
             try:
                 del dump_dict[item]

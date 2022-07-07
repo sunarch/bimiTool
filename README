@@ -16,9 +16,8 @@ Features
 
 Dependencies
 ------------
-* Python (tested with version 2.6, 2.7)
+* Python 3
 * Python GTK+3 bindings ( >=gir1.2-gtk-3.0 )
-* Python SQLite3 bindings (pysqlite2)
 
 
 Installing

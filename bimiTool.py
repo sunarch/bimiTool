@@ -21,7 +21,7 @@ import argparse
 import logging
 import subprocess
 import sys
-from urllib import quote
+import urllib.parse
 
 from bimibase import BimiBase
 from bimiconfig import BimiConfig
@@ -342,8 +342,8 @@ class BiMiTool:
 
                     for item in acc_drink_quaffed:
                         try:
-                            insert = unicode(parts[0]) + unicode(parts[2]).format(name=item[0], drink=item[1], amount=item[2])
-                        except StandardError as err:
+                            insert = str(parts[0]) + str(parts[2]).format(name=item[0], drink=item[1], amount=item[2])
+                        except Exception as err:
                             self._logger.error("Line %s in file %s is not as expected! [err: %s]", str(i+1), BimiConfig.option('mail_path'), err)
                             return
                         mail_body += insert + '\n'
@@ -370,7 +370,7 @@ class BiMiTool:
                     for item in accnames_balances:
                         try:
                             insert = parts[0] + parts[2].format(name=item[0], balance=item[1])
-                        except StandardError as err:
+                        except Exception as err:
                             self._logger.error("'$accInfos:' line in %s file is broken! [err: %s]", BimiConfig.option('mail_path'), err)
                             return
                         mail_body += insert + '\n'
@@ -401,13 +401,13 @@ class BiMiTool:
         # Build mailto url from dictionary
         if mail_program is not None:
             if 'to' in mailto_dict:
-                mailto_url = 'mailto:{}?'.format( quote(mailto_dict['to'].encode('utf-8')) )
+                mailto_url = 'mailto:{}?'.format(urllib.parse.quote(mailto_dict['to'].encode('utf-8')) )
             else:
                 mailto_url = 'mailto:?'
             if 'subject' in mailto_dict:
-                mailto_url+= 'subject={}&'.format( quote(mailto_dict['subject'].encode('utf-8')) )
+                mailto_url+= 'subject={}&'.format(urllib.parse.quote(mailto_dict['subject'].encode('utf-8')) )
             if 'body' in mailto_dict:
-                mailto_url+= 'body={}'.format( quote(mailto_dict['body'].encode('utf-8')) )
+                mailto_url+= 'body={}'.format(urllib.parse.quote(mailto_dict['body'].encode('utf-8')) )
         else:
             return mail_program
 
@@ -543,11 +543,11 @@ class BiMiTool:
         self.drinks_list.clear()
         cur_symbol = BimiConfig.option('currency')
         for item in self.db.drinks():
-            self.drinks_list.append( [item[0], item[1],\
-                                      item[2]/100.0, str(item[2]/100.0) + cur_symbol,\
-                                      item[3]/100.0, str(item[3]/100.0) + cur_symbol,\
-                                      item[4]/100.0, str(item[4]/100.0) + cur_symbol,\
-                                      item[5], item[6], item[7],\
+            self.drinks_list.append( [item[0], item[1],
+                                      item[2]/100.0, str(item[2]/100.0) + cur_symbol,
+                                      item[3]/100.0, str(item[3]/100.0) + cur_symbol,
+                                      item[4]/100.0, str(item[4]/100.0) + cur_symbol,
+                                      item[5], item[6], item[7],
                                       item[1] + ' @ ' + str(item[2]/100.0) + cur_symbol] )
         self.updateDrinksComboBoxes()
 

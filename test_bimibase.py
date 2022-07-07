@@ -19,15 +19,10 @@
 import datetime
 import logging
 import os
+import sqlite3
 import unittest
 
 import bimibase
-
-try:
-    from pysqlite2 import dbapi2 as sqlite3
-except:
-    print "Please install pysqlite2 or check the environment variables\n"
-    sys.exit(1)
 
 
 class TestBimiBase(unittest.TestCase):
@@ -99,17 +94,17 @@ class TestBimiBase(unittest.TestCase):
         self.cur.execute("DELETE FROM kings")
         self.cur.execute("DELETE FROM transacts")
 
-        self.accounts_list = [(1, "Noob"),\
-                              (2, "Max Mustermann"),\
+        self.accounts_list = [(1, "Noob"),
+                              (2, "Max Mustermann"),
                               (3, "Testa")]
         self.cur.executemany("INSERT INTO accounts VALUES(?,?)", self.accounts_list)
 
-        self.drinks_list = [(1, "Fanta", 100, 85, 15, 5, 15, False, True),\
-                            (2, "Cola", 100, 85, 15, 23, 2, False, False),\
+        self.drinks_list = [(1, "Fanta", 100, 85, 15, 5, 15, False, True),
+                            (2, "Cola", 100, 85, 15, 23, 2, False, False),
                             (3, "Geloescht", 20, 19, 25, 0, 300, True, False)]
         self.cur.executemany("INSERT INTO drinks VALUES(?,?,?,?,?,?,?,?,?)", self.drinks_list)
 
-        self.kings_list = [(1,1,10), (1,2,2),\
+        self.kings_list = [(1,1,10), (1,2,2),
                            (3,1,5), (3,3,300)]
         self.cur.executemany("INSERT INTO kings VALUES(?,?,?)", self.kings_list)
 
@@ -117,11 +112,11 @@ class TestBimiBase(unittest.TestCase):
         self.d2 = datetime.datetime.now()
         self.d3 = datetime.datetime.now()
         self.d4 = datetime.datetime.now()
-        self.transacts_list = [(1,1,0,1,1000,self.d1),\
-                               (2,2,0,1,500,self.d2),\
-                               (3,3,1,5,100,self.d3),\
-                               (3,3,3,300,20,self.d3),\
-                               (4,1,1,10,100,self.d4),\
+        self.transacts_list = [(1,1,0,1,1000,self.d1),
+                               (2,2,0,1,500,self.d2),
+                               (3,3,1,5,100,self.d3),
+                               (3,3,3,300,20,self.d3),
+                               (4,1,1,10,100,self.d4),
                                (4,1,2,2,100,self.d4)]
         self.cur.executemany("INSERT INTO transacts VALUES(?,?,?,?,?,?)", self.transacts_list)
         self.dbcon.commit()
@@ -189,8 +184,8 @@ class TestBimiBase(unittest.TestCase):
         self.bb.consumeDrinks(2, [(1,10), (2,20), (2,30)])
 
         self.cur.execute("SELECT * FROM drinks WHERE did in (1,2) ORDER BY did ASC")
-        self.assertEqual( [(1, "Fanta", 100, 85, 15, 0, 25, False, True),\
-                           (2, "Cola", 100, 85, 15, 0, 52, False, False)],\
+        self.assertEqual( [(1, "Fanta", 100, 85, 15, 0, 25, False, True),
+                           (2, "Cola", 100, 85, 15, 0, 52, False, False)],
                           self.cur.fetchall() )
 
         self.cur.execute("SELECT * FROM kings WHERE aid=2")
@@ -311,7 +306,7 @@ class TestBimiBase(unittest.TestCase):
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         # tid, drinks.name, count, value, date)
-        check_list = [(1, None, 1, 1000, self.d1),\
-                      (4, "Fanta", 10, 100, self.d4),\
+        check_list = [(1, None, 1, 1000, self.d1),
+                      (4, "Fanta", 10, 100, self.d4),
                       (4, "Cola", 2, 100,self.d4)]
         self.assertEqual( check_list, self.bb.transactions(1) )

@@ -51,4 +51,3 @@ for item in version_subs_files:
 for item in git_rm_files:
     process = subprocess.Popen(["git", "rm", item], stdout=subprocess.PIPE)
     sys.stdout.write(process.communicate()[0])
-
