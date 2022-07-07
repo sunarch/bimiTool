@@ -59,23 +59,26 @@ Euer BiMi"""}
     _config_dict = _default_config_dict
     _rm_opts = ['db_path', 'gui_path', 'mail_path']  # Options that will be removed before dumping the config
 
-    # Returns a copy of _config_dict.
-    #
-    #  \return \b Dictionary copy containing all config options
-    #
     @staticmethod
     def config():
+        """Returns a copy of _config_dict.
+
+        :return: Dictionary copy containing all config options
+        """
+
         return copy.deepcopy(BimiConfig._config_dict)
 
-    # Loads config options from a file or sets the defaults
-    #
-    #  Raises exceptions if no file can be found at conf_file_path or if file
-    #  is not a yaml file.
-    #
-    #  \param conf_file_path \b String (const) containing the path to the conf file
-    #
     @staticmethod
     def load(conf_file_path=None):
+        """Loads config options from a file or sets the defaults
+
+        Raises exceptions if no file can be found at conf_file_path or if file
+        is not a yaml file.
+
+        :param conf_file_path: String (const) containing the path to the conf file
+        :return:
+        """
+
         if conf_file_path is not None:
             BimiConfig._config_file_path = conf_file_path
 
@@ -111,46 +114,52 @@ Euer BiMi"""}
             if BimiConfig.option(k) is None:
                 BimiConfig.set_option(k, v)
 
-    # Returns a copy of the specified option or None if option was not found
-    #
-    #  \param option \b String (const) key from dictionary _config_dict.
-    #  \return \b Object associated to the option string or None if option wasn't found
-    #
     @staticmethod
     def option(option):
+        """Returns a copy of the specified option or None if option was not found
+
+        :param option: String (const) key from dictionary _config_dict.
+        :return: Object associated to the option string or None if option wasn't found
+        """
+
         try:
             return copy.deepcopy(BimiConfig._config_dict[str(option)])
         except KeyError:
             BimiConfig._logger.debug('Option %s not found!', option)
             return None
 
-    # Sets the _config_dict to a copy of the given dictionary
-    #
-    #  \param conf_dict \b Dictionary (const) which will be copied and used as new config
-    #
     @staticmethod
     def set_config(conf_dict):
+        """Sets the _config_dict to a copy of the given dictionary
+
+        :param conf_dict: Dictionary (const) which will be copied and used as new config
+        :return:
+        """
+
         BimiConfig._config_dict = copy.deepcopy(conf_dict)
         BimiConfig.write_config()
 
-    # Sets or adds a config option in _config_dict
-    #
-    #  \param option \b String (const) key from dictionary _config_dict
-    #  \param value  \b Object (const) which will be assoziated with the key
-    #
     @staticmethod
     def set_option(option, value):
+        """Sets or adds a config option in _config_dict
+
+        :param option: String (const) key from dictionary _config_dict
+        :param value: Object (const) which will be assoziated with the key
+        :return:
+        """
+
         if option not in BimiConfig._config_dict:
             BimiConfig._logger.debug('Adding option %s to _config_dict.', option)
         BimiConfig._config_dict[option] = copy.deepcopy(value)
 
-    # Writes _config_dict to a yaml file.
-    #
-    #  Options specified in _rm_opts are removed before writing.
-    #  TODO: enhance this function.
-    #
     @staticmethod
     def write_config():
+        """Writes _config_dict to a yaml file.
+        Options specified in _rm_opts are removed before writing.
+
+        TODO: enhance this function.
+        """
+
         # Check if directories exist, if not create them
         if not os.path.isdir(os.path.dirname(BimiConfig._config_file_path)):
             try:

@@ -149,10 +149,12 @@ class BiMiTool:
 
         self.main_window.show_all()
 
-    # Called if mouse button is pressed in self.accounts_view
-    #
-    #  Checks for right mouse click and opens context menu
     def accounts_view_clicked(self, widget, event):
+        """Called if mouse button is pressed in self.accounts_view
+
+        Checks for right mouse click and opens context menu
+        """
+
         if event.button == 3:
             self.event_pos = (event.x, event.y)
             if widget.get_path_at_pos(event.x, event.y) is None:
@@ -171,8 +173,9 @@ class BiMiTool:
         self.account_window = None
         self.edit_acc_infos = []
 
-    # Commits data entered in account_window to the database
     def account_window_save(self, widget):
+        """Commits data entered in account_window to the database"""
+
         self.account_window.hide()
         acc_name = self.gui.get_object('edit_acc_entry').get_text()
         credit = int(round(100*self.gui.get_object('edit_acc_spinbutton').get_value()))
@@ -188,21 +191,25 @@ class BiMiTool:
         # TODO: reselect account after adding credit or select account after adding it
         self.account_window.destroy()
 
-    # Builds the account window and connects signals
-    #
-    #  Drops following after being called for the second time 0_o
-    #  Gtk-CRITICAL **: gtk_spin_button_get_adjustment: assertion `GTK_IS_SPIN_BUTTON (spin_button)' failed
     def build_account_window(self):
+        """Builds the account window and connects signals
+
+        Drops following after being called for the second time 0_o
+        Gtk-CRITICAL **: gtk_spin_button_get_adjustment: assertion `GTK_IS_SPIN_BUTTON (spin_button)' failed
+        """
+
         self.gui.add_objects_from_file(BimiConfig.option('gui_path'), ['account_window', 'adjustment1'])
         self.account_window = self.gui.get_object('account_window')
         self.gui.connect_signals({'account_window_cancel': self.account_window_cancel,
                                   'account_window_save': self.account_window_save,
                                   'account_window_destroyed': self.account_window_destroyed})
 
-    # Builds the drink window and connects signals
-    #
-    #  No problems with gtk_spin_button_get_adjustment here, stupid gtk >_<
     def build_drink_window(self):
+        """Builds the drink window and connects signals
+
+        No problems with gtk_spin_button_get_adjustment here, stupid gtk >_<
+        """
+
         widgets = ['drink_window', 'adjustment2', 'adjustment3', 'adjustment4', 'adjustment5', 'adjustment6']
         self.gui.add_objects_from_file(BimiConfig.option('gui_path'), widgets)
         self.drink_window = self.gui.get_object('drink_window')
@@ -290,23 +297,25 @@ class BiMiTool:
         self.drink_window.destroy()
         self.update_drinks_list()
 
-    # Generates mail text from credit_mail option and database
-    #
-    #  \param account_name \b String containing the name of the account which recived the credit
-    #  \param credit       \b Float containing the amount of added credit
-    #  \return             \b Dictionary containing the 'body' and 'subject' strings of the credit mail
-    #
     def generate_credit_mail(self, account_name, credit):
+        """Generates mail text from credit_mail option and database
+
+        :param account_name: String containing the name of the account which recived the credit
+        :param credit: Float containing the amount of added credit
+        :return: Dictionary containing the 'body' and 'subject' strings of the credit mail
+        """
+
         mail_body = BimiConfig.option('credit_mail_text').replace('$amount', str(credit) + BimiConfig.option('currency'))\
                                                          .replace('$name', account_name)
         mail_subj = BimiConfig.option('credit_mail_subject').replace('$amount', str(credit) + BimiConfig.option('currency'))
         return {'body': mail_body, 'subject': mail_subj}
 
-    # Generates mail text from summary_mail option and database
-    #
-    #  \return \b Dictionary containing the 'body' and 'subject' strings of the summary mail
-    #
     def generate_summary_mail(self):
+        """Generates mail text from summary_mail option and database
+
+        :return: Dictionary containing the 'body' and 'subject' strings of the summary mail
+        """
+
         mail_string = BimiConfig.option('summary_mail_text').split('\n')
         mail_body = ''
         for i, line in enumerate(mail_string):
@@ -368,17 +377,18 @@ class BiMiTool:
     def mail_window_destroyed(self, widget, stuff=None):
         self.mail_window = None
 
-    # Open mail program if option was selected
-    #
-    #  Before opening the mail program in compose mode the strings in
-    #  mailto_dict are convertet mostly according to RFC 2368. The only
-    #  difference is the character encoding with utf-8, which is not
-    #  allowed in RFC 2368 but thunderbird supports it.
-    #
-    #  \param mailto_dict \b Dictionary containing 'to', 'body' and 'subject' strings
-    #  \return            \b String containing the program name or None
-    #
     def open_mail_program(self, mailto_dict):
+        """Open mail program if option was selected
+
+        Before opening the mail program in compose mode the strings in
+        mailto_dict are converted mostly according to RFC 2368. The only
+        difference is the character encoding with utf-8, which is not
+        allowed in RFC 2368 but thunderbird supports it.
+
+        :param mailto_dict: Dictionary containing 'to', 'body' and 'subject' strings
+        :return: String containing the program name or None
+        """
+
         mail_program = BimiConfig.option('mail_program')
         # Build mailto url from dictionary
         if mail_program is not None:
@@ -400,8 +410,9 @@ class BiMiTool:
                 self._logger.debug("%s: %s", mail_program, process.communicate()[0])
         return mail_program
 
-    # Opens account_window
     def pop_add_acc_window(self, widget):
+        """Opens account_window"""
+
         if self.account_window is None:
             self.build_account_window()
         else:
@@ -426,8 +437,9 @@ class BiMiTool:
             self.gui.get_object('edit_drink_spinbutton'+str(i)).set_value(0)
         self.drink_window.show()
 
-    # Opens account_window and loads account infos
     def pop_edit_acc_window(self, widget):
+        """Opens account_window and loads account infos"""
+
         if self.account_window is None:
             self.build_account_window()
         else:
@@ -455,21 +467,24 @@ class BiMiTool:
             self.gui.get_object('edit_drink_spinbutton'+str(i)).set_value(self.edit_drink_infos[cols[i]])
         self.drink_window.show()
 
-    # Open mail program in compose mode with credit_mail data
-    #
-    #  \param account_name \b String containig the name of the account holder
-    #  \param credit       \b Float representing the amount of added credit
-    #
     def show_credit_mail(self, account_name, credit):
+        """Open mail program in compose mode with credit_mail data
+
+        :param account_name: String containig the name of the account holder
+        :param credit: Float representing the amount of added credit
+        :return:
+        """
+
         mail_dict = self.generate_credit_mail(account_name, credit)
         self.open_mail_program(mail_dict)
 
-    # Show summary mail in a gtk+ window or opens mail program
-    #
-    #  size_request of scrolledwindow and textview doesn't work properly,
-    #  which results in a too small window. stupid gtk
-    #
     def show_summary_mail(self, widget):
+        """Show summary mail in a gtk+ window or opens mail program
+
+        size_request of scrolledwindow and textview doesn't work properly,
+        which results in a too small window. stupid gtk
+        """
+
         mail_dict = self.generate_summary_mail()
         if self.open_mail_program(mail_dict) is None:
             if self.mail_window is None:
@@ -495,8 +510,9 @@ class BiMiTool:
                     self.gui.get_object('transactions_menu_delete').set_sensitive(True)
                     self.transactions_context_menu.popup(None, None, None, None, event.button, event.time)
 
-    # Loads accounts infos from database and updates accounts_list
     def update_accounts_view(self):
+        """Loads accounts infos from database and updates accounts_list"""
+
         self.accounts_list.clear()
         db_account_list = self.db.accounts()
         for item in db_account_list:
@@ -508,9 +524,11 @@ class BiMiTool:
             if i < len(self.drinks_list):
                 self.drinks_comboxes_spinbuttons[i][0].set_active(i)
 
-    # Loads drink infos from database into drinks_list and updates
-    # widget dependent on drinks_list.
     def update_drinks_list(self):
+        """Loads drink infos from database into drinks_list and updates
+        widget dependent on drinks_list.
+        """
+
         self.drinks_list.clear()
         cur_symbol = BimiConfig.option('currency')
         for item in self.db.drinks():
@@ -552,6 +570,7 @@ class BiMiTool:
 
 
 if __name__ == "__main__":
+
     # Parse arguments
     parser = argparse.ArgumentParser(add_help=True,
                                      description='This program helps managing beverage consumation in dormitories')

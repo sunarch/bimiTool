@@ -60,34 +60,36 @@ class TestBimiBase(unittest.TestCase):
                                                  date TIMESTAMP)")
         self.dbcon.commit()
 
-    # Insert entries into database to enable testing
-    #
-    #  accounts
-    #      1 Noob
-    #      2 Max Mustermann
-    #      3 Testa
-    #
-    #  drinks
-    #      1 Fanta     100 85 15  5  15 False True
-    #      2 Cola      100 85 15 23   2 False False
-    #      3 Geloescht  20 19 25  0 300 True  False
-    #
-    #  kings
-    #      aid did quaffed
-    #        1   1      10
-    #        1   2       2
-    #        3   1       5
-    #        3   3     300
-    #
-    #  transacts
-    #       tid aid did count value date
-    #         1   1   0     1  1000   d1
-    #         2   2   0     1   500   d2
-    #         3   3   1     5   100   d3
-    #         3   3   3   300    20   d3
-    #         4   1   1    10   100   d4
-    #         4   1   2     2   100   d4
     def populateDatabase(self):
+        """ Insert entries into database to enable testing
+
+        accounts
+            1 Noob
+            2 Max Mustermann
+            3 Testa
+
+        drinks
+            1 Fanta     100 85 15  5  15 False True
+            2 Cola      100 85 15 23   2 False False
+            3 Geloescht  20 19 25  0 300 True  False
+
+        kings
+            aid did quaffed
+              1   1      10
+              1   2       2
+              3   1       5
+              3   3     300
+
+        transacts
+            tid aid did count value date
+              1   1   0     1  1000   d1
+              2   2   0     1   500   d2
+              3   3   1     5   100   d3
+              3   3   3   300    20   d3
+              4   1   1    10   100   d4
+              4   1   2     2   100   d4
+        """
+
         self.cur.execute("DELETE FROM accounts")
         self.cur.execute("DELETE FROM drinks")
         self.cur.execute("DELETE FROM kings")

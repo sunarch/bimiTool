@@ -52,7 +52,8 @@ import sys
 #    count             value multiplyer i.e. number of drinks
 #    value             value of one drink or credit/debit added
 #    date              date and time of transaction
-#
+
+
 class BimiBase:
 
     def __init__(self, path):
@@ -111,33 +112,38 @@ class BimiBase:
                 sys.exit(1)
             self._logger.info('Yay, database seems to be useable.')
 
-    # Returns a list containing account IDs and names odered ascending by names
-    #
-    #  \return \b List of tuples containing (aid,name) from table accounts
-    #
     def accounts(self):
+        """Returns a list containing account IDs and names odered ascending by names
+
+        :return: List of tuples containing (aid,name) from table accounts
+        """
+
         self.cur.execute("SELECT * FROM accounts ORDER BY name ASC")
         return self.cur.fetchall()
 
-    # Adds a new account to accounts table.
-    #
-    #  \param account_name \b String containing the name of the user
-    #  \param credit       \b Integer value of the credit to be added. Can be negative.
-    #
     def add_account(self, account_name, credit=None):
+        """Adds a new account to accounts table.
+
+        :param account_name: String containing the name of the user
+        :param credit: Integer value of the credit to be added. Can be negative.
+        :return:
+        """
+
         self.cur.execute("INSERT INTO accounts VALUES(?,?)", [None, account_name.decode('utf-8')])
         self.dbcon.commit()
         if credit is not None:
             self.add_credit(self.cur.lastrowid, credit)
 
-    # Creates a transaction which adds credit to account_id.
-    #
-    #  Doesn't check if account_id exists!
-    #
-    #  \param account_id \b Integer that corresponds to an aid in table accounts
-    #  \param credit     \b Integer value of the credit to be added. Can be negative.
-    #
     def add_credit(self, account_id, credit):
+        """Creates a transaction which adds credit to account_id.
+
+         Doesn't check if account_id exists!
+
+        :param account_id: Integer that corresponds to an aid in table accounts
+        :param credit: Integer value of the credit to be added. Can be negative.
+        :return:
+        """
+
         self.cur.execute("SELECT EXISTS(SELECT * FROM transacts)")
         if self.cur.fetchone()[0] != 0:
             self.cur.execute("INSERT INTO transacts VALUES((SELECT MAX(tid) FROM transacts)+1,?,?,?,?,?)",
@@ -147,29 +153,33 @@ class BimiBase:
                              [int(account_id), 0, 1, int(credit), datetime.datetime.now()])
         self.dbcon.commit()
 
-    # Adds a new drink to drinks table.
-    #
-    #  \param nspdfek \b List[7] containing: string  containing the name of the drink
-    #                                        integer representing the price at which the beverage will be sold
-    #                                        integer representing the price at which the beverage is purchased
-    #                                        integer containing the value of an empty bottle
-    #                                        integer number of full bottles available
-    #                                        integer number of empty bottles
-    #                                        bool    if drink should show up in kings() call
-    #
     def add_drink(self, nspdfek=[]):
+        """Adds a new drink to drinks table.
+
+        :param nspdfek: List[7] containing: string  containing the name of the drink
+                                            integer representing the price at which the beverage will be sold
+                                            integer representing the price at which the beverage is purchased
+                                            integer containing the value of an empty bottle
+                                            integer number of full bottles available
+                                            integer number of empty bottles
+                                            bool    if drink should show up in kings() call
+        :return:
+        """
+
         nspdfek = [None] + nspdfek
         nspdfek.insert(7, False)
         nspdfek[1] = nspdfek[1].decode('utf-8')
         self.cur.execute("INSERT INTO drinks VALUES(?,?,?,?,?,?,?,?,?)", nspdfek)
         self.dbcon.commit()
 
-    # Creates one db-entry per drink in transacts with the same tid.
-    #
-    #  \param account_id        \b Integer that corresponds to an aid in table accounts
-    #  \param drinkIDs_amounts  \b List that contains tuples (did, amount) to know the amount of drinks consumed
-    #
     def consume_drinks(self, account_id, drink_ids_amounts):
+        """Creates one db-entry per drink in transacts with the same tid.
+
+        :param account_id: Integer that corresponds to an aid in table accounts
+        :param drink_ids_amounts: List that contains tuples (did, amount) to know the amount of drinks consumed
+        :return:
+        """
+
         # Get drink informations from drinks table
         drink_infos = {}
         for item in drink_ids_amounts:
@@ -206,11 +216,13 @@ class BimiBase:
         # update kings table
         self.update_king(account_id, drink_ids_amounts)
 
-    # Deletes all references to account_id in the database
-    #
-    #  \param account_id \b Integer that corresponds to an aid in table accounts
-    #
     def del_account(self, account_id):
+        """Deletes all references to account_id in the database
+
+        :param account_id: Integer that corresponds to an aid in table accounts
+        :return:
+        """
+
         # delete account from account-table
         self.cur.execute("DELETE FROM accounts WHERE aid=?", [account_id])
         # delete all transactions related to the account
@@ -219,36 +231,41 @@ class BimiBase:
         self.cur.execute("DELETE FROM kings WHERE aid=?", [account_id])
         self.dbcon.commit()
 
-    # Marks the drink as deleted in table drinks
-    #
-    #  \param drink_id \b Integer containing the did from table drinks
-    #
-    # TODO: delete drink if there are no transactions attached
     def del_drink(self, drink_id):
+        """Marks the drink as deleted in table drinks
+
+        TODO: delete drink if there are no transactions attached
+
+        :param drink_id: Integer containing the did from table drinks
+        :return:
+        """
+
         self.cur.execute("UPDATE drinks SET deleted=1, kings=0 WHERE did=?", [drink_id])
         self.dbcon.commit()
 
-    # Returns a list of all available drinks
-    #
-    #  \return \b List of ntuples containing all columns form table drinks except deleted
-    #
     def drinks(self):
+        """Returns a list of all available drinks
+
+        :return: List of ntuples containing all columns form table drinks except deleted
+        """
+
         self.cur.execute("SELECT did, name, sales_price, purchase_price, deposit, bottles_full, bottles_empty, kings \
                             FROM drinks \
                            WHERE deleted=0 \
                         ORDER BY name ASC")
         return self.cur.fetchall()
 
-    # Returns those who have consumed the most for each drink
-    #
-    #  For every relevant drink name and username calculate the amount
-    #  and keep only the user with MAX(quaffed)
-    #
-    #  \return \b List of ntuples (accounts.name, drinks.name, quaffed) for every
-    #             drink with drinks.kings=True and quaffed = MAX(quaffed)ordered
-    #             ascending by accounts.name
-    #
     def kings(self):
+        """Returns those who have consumed the most for each drink
+
+        For every relevant drink name and username calculate the amount
+        and keep only the user with MAX(quaffed)
+
+        :return: List of ntuples (accounts.name, drinks.name, quaffed) for every
+                 drink with drinks.kings=True and quaffed = MAX(quaffed)ordered
+                 ascending by accounts.name
+        """
+
         self.cur.execute('''SELECT name, dname, MAX(total)
                             FROM (SELECT k.aid, d.name AS dname, SUM(k.quaffed) AS total
                                   FROM kings AS k
@@ -260,13 +277,15 @@ class BimiBase:
                             ORDER BY name ASC''')
         return self.cur.fetchall()
 
-    # Sets the name from account_id to name
     def set_account_name(self, account_id, name):
+        """Sets the name from account_id to name"""
+
         self.cur.execute("UPDATE accounts SET name=? WHERE aid=?", [name.decode('utf-8'), account_id])
         self.dbcon.commit()
 
-    # Sets columns of drinks table, depending on values in nspdfek
     def set_drink(self, drink_id, nspdfek=[]):
+        """Sets columns of drinks table, depending on values in nspdfek"""
+
         nspdfek[0] = nspdfek[0].decode('utf-8')
         if len(nspdfek) == 7:
             nspdfek.append(drink_id)
@@ -282,14 +301,15 @@ class BimiBase:
         else:
             self._logger.debug("Invalid parameter count (%i), nothing done!", len(nspdfek)-1)
 
-    # Returns a list including all transactions of an user
-    #
-    #  \param account_id \b Integer that corresponds to an aid in table accounts
-    #  \return           \b List of ntuples (tid, drinks.name, count, value, date).
-    #                       tid can occur multiple times and value is the cost of
-    #                       one bottle, i.e. it is negative.
-    #
     def transactions(self, account_id):
+        """Returns a list including all transactions of an user
+
+        :param account_id: Integer that corresponds to an aid in table accounts
+        :return: List of ntuples (tid, drinks.name, count, value, date).
+                 tid can occur multiple times and value is the cost of
+                 one bottle, i.e. it is negative.
+        """
+
         self.cur.execute("SELECT tid, name, count, value, date FROM (SELECT * FROM transacts WHERE aid=?) AS t \
                  LEFT OUTER JOIN drinks \
                               ON drinks.did=t.did \
@@ -297,15 +317,17 @@ class BimiBase:
         balance_list = self.cur.fetchall()
         return balance_list
 
-    # Reverses a credit/debit transaction
-    #
-    #  The given transaction will be deleted from transacts and if
-    #  drinks were consumed the drinks and kings tables will be
-    #  updated to reflect the reversion.
-    #
-    #  \param transact_id \b Integer containing the tid to be deleted
-    #                        from table transacts.
     def undo_transaction(self, transact_id):
+        """Reverses a credit/debit transaction
+
+        The given transaction will be deleted from transacts and if
+        drinks were consumed the drinks and kings tables will be
+        updated to reflect the reversion.
+
+        :param transact_id: Integer containing the tid to be deleted from table transacts.
+        :return:
+        """
+
         self.cur.execute("SELECT aid, did, count FROM transacts WHERE tid=?", [transact_id])
         aids_dids_counts = self.cur.fetchall()
         # Update drinks table
@@ -326,12 +348,14 @@ class BimiBase:
         self.cur.execute("DELETE FROM transacts WHERE tid=?", [transact_id])
         self.dbcon.commit()
 
-    # Adds the consumed amount of drinks to the quaffed value in the table kings
-    #
-    #  \param account_id        \b Integer that corresponds to an aid in table accounts
-    #  \param drinkIDs_amounts  \b List that contains tuples (did, amount) to know the amount of drinks consumed
-    #
     def update_king(self, account_id, drink_ids_amounts):
+        """Adds the consumed amount of drinks to the quaffed value in the table kings
+
+        :param account_id: Integer that corresponds to an aid in table accounts
+        :param drink_ids_amounts: List that contains tuples (did, amount) to know the amount of drinks consumed
+        :return:
+        """
+
         for item in drink_ids_amounts:
             self.cur.execute("SELECT quaffed FROM kings WHERE aid=? AND did=?", [account_id, item[0]])
 
