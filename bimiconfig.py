@@ -180,8 +180,8 @@ Euer BiMi"""}
 
         # Write dictionary to yaml file
         try:
-            yaml_file = open(BimiConfig._config_file_path, 'w')
+            with open(BimiConfig._config_file_path, 'w', encoding='UTF-8') as yaml_file:
+                yaml.safe_dump(dump_dict, stream=yaml_file,
+                               default_flow_style=False, allow_unicode=True, encoding='utf-8')
         except IOError as io:
             BimiConfig._logger.error("Oh noes, file %s not writeable! [io: %s]", BimiConfig._config_file_path, io)
-        yaml.safe_dump(dump_dict, stream=yaml_file, default_flow_style=False, allow_unicode=True, encoding='utf-8')
-        yaml_file.close()
