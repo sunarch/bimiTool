@@ -24,9 +24,8 @@ import subprocess
 import sys
 import urllib.parse
 
-from bimibase import BimiBase
-from bimiconfig import BimiConfig
-
+import gi
+gi.require_version("Gtk", "3.0")
 try:
     from gi.repository import Gtk, Pango
 except ImportError:
@@ -34,6 +33,9 @@ except ImportError:
     print("| Check your python GTK+3 setup! (Debian/Ubuntu: install gir1.2-gtk-3.0) |")
     print("--------------------------------------------------------------------------")
     sys.exit(1)
+
+from bimibase import BimiBase
+from bimiconfig import BimiConfig
 
 
 class BiMiTool:
