@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.    #
 # ----------------------------------------------------------------------------#
 
-import datetime
+from datetime import datetime
 import logging
 import os
 import sqlite3
@@ -65,11 +65,13 @@ class BimiBase:
         if not os.path.isdir(os.path.dirname(path)):
             try:
                 os.makedirs(os.path.dirname(path))
-            except OSError as oe:
-                self._logger.error('Not possible to create directory %s! No database available! [os: %s]',
-                                   os.path.dirname(path), oe)
-                raise OSError('Not possible to create directory %s! No database available! [os: %s]',
-                              os.path.dirname(path), oe)
+            except OSError as err:
+                self._logger.error('Not possible to create directory %s! \
+                                    No database available! \
+                                    [os: %s]',
+                                   os.path.dirname(path), err)
+                raise OSError(f'Not possible to create directory {os.path.dirname(path)}!' +
+                              f'No database available! [os: {err}]') from err
 
         self.dbcon = sqlite3.connect(path, detect_types=sqlite3.PARSE_DECLTYPES)
         self.cur = self.dbcon.cursor()
@@ -100,10 +102,10 @@ class BimiBase:
                                                      value INTEGER,\
                                                      date TIMESTAMP)')
             self.dbcon.commit()
-            self._logger.info('Created new data base @ ' + path)
+            self._logger.info('Created new data base @ %s', path)
 
         except sqlite3.OperationalError:
-            self._logger.info('Found an existing data base @ ' + path)
+            self._logger.info('Found an existing data base @ %s', path)
             try:
                 self.cur.execute('SELECT aid,name \
                                   FROM accounts')
@@ -114,7 +116,8 @@ class BimiBase:
                 self.cur.execute('SELECT aid,did,quaffed \
                                   FROM kings')
             except sqlite3.OperationalError as err:
-                self._logger.critical('Oh noes, data base corrupt or created by an older version! [sqlite3: %s]',
+                self._logger.critical('Oh noes, data base corrupt or created by an older version! \
+                                       [sqlite3: %s]',
                                       str(err))
                 sys.exit(1)
             self._logger.info('Yay, database seems to be usable.')
@@ -159,25 +162,29 @@ class BimiBase:
         if self.cur.fetchone()[0] != 0:
             self.cur.execute('INSERT INTO transacts \
                              VALUES((SELECT MAX(tid) FROM transacts)+1,?,?,?,?,?)',
-                             [int(account_id), 0, 1, int(credit), datetime.datetime.now()])
+                             [int(account_id), 0, 1, int(credit), datetime.now()])
         else:
             self.cur.execute('INSERT INTO transacts \
                               VALUES(1,?,?,?,?,?)',
-                             [int(account_id), 0, 1, int(credit), datetime.datetime.now()])
+                             [int(account_id), 0, 1, int(credit), datetime.now()])
         self.dbcon.commit()
 
-    def add_drink(self, nspdfek=[]):
+    def add_drink(self, nspdfek=None):
         """Adds a new drink to drinks table.
 
-        :param nspdfek: List[7] containing: string  containing the name of the drink
-                                            integer representing the price at which the beverage will be sold
-                                            integer representing the price at which the beverage is purchased
-                                            integer containing the value of an empty bottle
-                                            integer number of full bottles available
-                                            integer number of empty bottles
-                                            bool    if drink should show up in kings() call
+        :param nspdfek: List[7] containing:
+                        string  containing the name of the drink
+                        integer representing the price at which the beverage will be sold
+                        integer representing the price at which the beverage is purchased
+                        integer containing the value of an empty bottle
+                        integer number of full bottles available
+                        integer number of empty bottles
+                        bool    if drink should show up in kings() call
         :return:
         """
+
+        if nspdfek is None:
+            nspdfek = []
 
         nspdfek = [None] + nspdfek
         nspdfek.insert(7, False)
@@ -191,7 +198,8 @@ class BimiBase:
         """Creates one db-entry per drink in transacts with the same tid.
 
         :param account_id: Integer that corresponds to an aid in table accounts
-        :param drink_ids_amounts: List that contains tuples (did, amount) to know the amount of drinks consumed
+        :param drink_ids_amounts: List that contains tuples (did, amount)
+                                  to know the amount of drinks consumed
         :return:
         """
 
@@ -203,7 +211,8 @@ class BimiBase:
                              [item[0]])
             data = self.cur.fetchone()
             if not data:
-                self._logger.error('DrinkID %d in table drinks not found. Can\'t consume this drink :(',
+                self._logger.error('DrinkID %d in table drinks not found. \
+                                    Can\'t consume this drink :(',
                                    item[0])
                 return
             # Check if drink ist listed multiple times
@@ -220,24 +229,25 @@ class BimiBase:
                                       FROM transacts'):
             new_tid = item[0]+1
         if new_tid == sys.maxsize:
-            self._logger.error('TID in table transacts reached maxINT! Can\'t commit any transactions X_X')
+            self._logger.error('TID in table transacts reached maxINT! \
+                                Can\'t commit any transactions X_X')
             return
 
         # update transacts and drinks tables
-        for k, v in drink_infos.items():
+        for key, value in drink_infos.items():
             self.cur.execute('INSERT INTO transacts \
                               VALUES(?,?,?,?,?,?)',
-                             [new_tid, account_id, k, v[0], -v[1], datetime.datetime.now()])
-            if v[2]-v[0] < 0:
+                             [new_tid, account_id, key, value[0], -value[1], datetime.now()])
+            if value[2] - value[0] < 0:
                 self.cur.execute('UPDATE drinks \
                                   SET bottles_full=?,bottles_empty=? \
                                   WHERE did=?',
-                                 [0, v[3]+v[0], k])
+                                 [0, value[3] + value[0], key])
             else:
                 self.cur.execute('UPDATE drinks \
                                   SET bottles_full=?,bottles_empty=? \
                                   WHERE did=?',
-                                 [v[2]-v[0], v[3]+v[0], k])
+                                 [value[2] - value[0], value[3] + value[0], key])
         self.dbcon.commit()
 
         # update kings table
@@ -322,8 +332,11 @@ class BimiBase:
                          [name, account_id])
         self.dbcon.commit()
 
-    def set_drink(self, drink_id, nspdfek=[]):
+    def set_drink(self, drink_id, nspdfek=None):
         """Sets columns of drinks table, depending on values in nspdfek"""
+
+        if nspdfek is None:
+            nspdfek = []
 
         nspdfek[0] = nspdfek[0]
         if len(nspdfek) == 7:
@@ -411,7 +424,8 @@ class BimiBase:
         """Adds the consumed amount of drinks to the quaffed value in the table kings
 
         :param account_id: Integer that corresponds to an aid in table accounts
-        :param drink_ids_amounts: List that contains tuples (did, amount) to know the amount of drinks consumed
+        :param drink_ids_amounts: List that contains tuples (did, amount)
+                                  to know the amount of drinks consumed
         :return:
         """
 

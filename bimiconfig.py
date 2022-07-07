@@ -59,7 +59,9 @@ Auf ein munteres Weiterzechen!
 Euer BiMi'''}
 
     _config_dict = _default_config_dict
-    _rm_opts = ['db_path', 'gui_path', 'mail_path']  # Options that will be removed before dumping the config
+
+    # Options that will be removed before dumping the config
+    _rm_opts = ['db_path', 'gui_path', 'mail_path']
 
     @staticmethod
     def config():
@@ -85,42 +87,41 @@ Euer BiMi'''}
             BimiConfig._config_file_path = conf_file_path
 
         try:
-            yaml_file = open(BimiConfig._config_file_path, 'r')
-        except IOError as io:
+            with open(BimiConfig._config_file_path, 'r', encoding='UTF-8') as yaml_file:
+                BimiConfig._config_dict = yaml.safe_load(yaml_file)
+        except IOError as err:
             if conf_file_path is None:
                 BimiConfig._logger.debug('No config file found. Writing one to %s',
                                          BimiConfig._config_file_path)
                 BimiConfig.write_config()
             else:
-                BimiConfig._logger.error('Reading file %s failed! Using default configuration. [io: %s]',
-                                         BimiConfig._config_file_path, io)
+                BimiConfig._logger.error('Reading file %s failed! Using default configuration. \
+                                          [io: %s]',
+                                         BimiConfig._config_file_path, err)
             return
-
-        try:
-            BimiConfig._config_dict = yaml.safe_load(yaml_file)
         except yaml.YAMLError as yamlerr:
-            yaml_file.close()
-            BimiConfig._logger.error('%s is not a valid config file! Using default configuration. [yaml: %s]',
+            BimiConfig._logger.error('%s is not a valid config file! Using default configuration. \
+                                      [yaml: %s]',
                                      BimiConfig._config_file_path, yamlerr)
             return
-        yaml_file.close()
 
         if not BimiConfig._config_dict:
             BimiConfig._config_dict = BimiConfig._default_config_dict
             BimiConfig._logger.debug('No options specified in %s. Using default configuration.',
                                      BimiConfig._config_file_path)
             return
-        elif type(BimiConfig._config_dict) is not dict:
+
+        if not isinstance(BimiConfig._config_dict, dict):
             BimiConfig._config_dict = BimiConfig._default_config_dict
-            BimiConfig._logger.error('%s is not a valid config file! Using default configuration. ' +
-                                     '[yaml: No dictionary found!]',
+            BimiConfig._logger.error('%s is not a valid config file! Using default configuration. \
+                                     [yaml: No dictionary found!]',
                                      BimiConfig._config_file_path)
             return
 
         # Check for mandatory but missing options
-        for k, v in BimiConfig._default_config_dict.items():
-            if BimiConfig.option(k) is None:
-                BimiConfig.set_option(k, v)
+        for key, value in BimiConfig._default_config_dict.items():
+            if BimiConfig.option(key) is None:
+                BimiConfig.set_option(key, value)
 
     @staticmethod
     def option(option):
@@ -174,9 +175,10 @@ Euer BiMi'''}
         if not os.path.isdir(os.path.dirname(BimiConfig._config_file_path)):
             try:
                 os.makedirs(os.path.dirname(BimiConfig._config_file_path))
-            except OSError as oe:
-                BimiConfig._logger.error('Not possible to create directory %s! Config not safe O_O [os: %s]',
-                                         os.path.dirname(BimiConfig._config_file_path), oe)
+            except OSError as err:
+                BimiConfig._logger.error('Not possible to create directory %s! Config not safe O_O \
+                                          [os: %s]',
+                                         os.path.dirname(BimiConfig._config_file_path), err)
 
         # Remove specified options before dumping
         dump_dict = copy.deepcopy(BimiConfig._config_dict)
@@ -191,6 +193,6 @@ Euer BiMi'''}
             with open(BimiConfig._config_file_path, 'w', encoding='UTF-8') as yaml_file:
                 yaml.safe_dump(dump_dict, stream=yaml_file,
                                default_flow_style=False, allow_unicode=True, encoding='utf-8')
-        except IOError as io:
+        except IOError as err:
             BimiConfig._logger.error('Oh noes, file %s not writeable! [io: %s]',
-                                     BimiConfig._config_file_path, io)
+                                     BimiConfig._config_file_path, err)

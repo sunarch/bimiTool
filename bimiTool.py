@@ -119,20 +119,21 @@ class BiMiTool:
         self.drinks_view.set_model(self.drinks_list)
         col_names = ['Name', 'Sales Price', 'Purchase Price', 'Deposit', 'Full Bottles', 'Empty Bottles', 'Kings']
         render_cols = [1, 3, 5, 7, 8, 9, 10]
-        for i in range(len(col_names)):
+        for col_name, render_col in zip(col_names, render_cols):
             renderer = Gtk.CellRendererText()
             renderer.set_alignment(1.0, 0.5)
-            drinks_view_col = Gtk.TreeViewColumn(col_names[i], renderer, text=render_cols[i])
+            drinks_view_col = Gtk.TreeViewColumn(col_name, renderer, text=render_col)
             self.drinks_view.append_column(drinks_view_col)
 
         # Create column headers for transactions_view
         self.transactions_view = self.gui.get_object('transactions_view')
         self.transactions_view.set_model(self.transactions_list)
         col_names = ['Date', 'Value']
-        for i in range(len(col_names)):
+        render_cols = [1, 2]
+        for col_name, render_col in zip(col_names, render_cols):
             renderer = Gtk.CellRendererText()
             renderer.set_alignment(1.0, 0.5)
-            trans_view_col = Gtk.TreeViewColumn(col_names[i], renderer, text=i+1)
+            trans_view_col = Gtk.TreeViewColumn(col_name, renderer, text=render_col)
             self.transactions_view.append_column(trans_view_col)
 
         # Set up and add text from database to comboboxes and spinbuttons
@@ -145,7 +146,8 @@ class BiMiTool:
             cbox.pack_start(cell, True)
             cbox.add_attribute(cell, 'text', 11)
 
-            adjustment = Gtk.Adjustment(value=0, lower=0, upper=999, step_increment=1, page_increment=10, page_size=0)
+            adjustment = Gtk.Adjustment(value=0, lower=0, upper=999,
+                                        step_increment=1, page_increment=10, page_size=0)
             spinbutton = Gtk.SpinButton()
             spinbutton.set_adjustment(adjustment)
             spinbutton.set_numeric(True)
@@ -207,10 +209,12 @@ class BiMiTool:
         """Builds the account window and connects signals
 
         Drops following after being called for the second time 0_o
-        Gtk-CRITICAL **: gtk_spin_button_get_adjustment: assertion `GTK_IS_SPIN_BUTTON (spin_button)' failed
+        Gtk-CRITICAL **: gtk_spin_button_get_adjustment:
+            assertion `GTK_IS_SPIN_BUTTON (spin_button)' failed
         """
 
-        self.gui.add_objects_from_file(BimiConfig.option('gui_path'), ['account_window', 'adjustment1'])
+        self.gui.add_objects_from_file(BimiConfig.option('gui_path'),
+                                       ['account_window', 'adjustment1'])
         self.account_window = self.gui.get_object('account_window')
         self.gui.connect_signals({'account_window_cancel': self.account_window_cancel,
                                   'account_window_save': self.account_window_save,
@@ -298,8 +302,8 @@ class BiMiTool:
         self.drink_window.hide()
         values = []
         values.append(self.gui.get_object('edit_drink_entry').get_text())
-        for i in range(3):
-            values.append(int(round(100*self.gui.get_object('edit_drink_spinbutton'+str(i)).get_value())))
+        for name in [f'edit_drink_spinbutton{i}' for i in (0, 1, 2)]:
+            values.append(int(round(100 * self.gui.get_object(name).get_value())))
         values.append(self.gui.get_object('edit_drink_spinbutton3').get_value())
         values.append(self.gui.get_object('edit_drink_spinbutton4').get_value())
         values.append(True)
@@ -351,14 +355,17 @@ class BiMiTool:
 
                     for item in acc_drink_quaffed:
                         try:
-                            insert = str(parts[0]) + str(parts[2]).format(name=item[0], drink=item[1], amount=item[2])
+                            insert = str(parts[0]) + \
+                                     str(parts[2]).format(name=item[0],
+                                                          drink=item[1],
+                                                          amount=item[2])
                         except Exception as err:
                             self._logger.error('Line %s in file %s is not as expected! [err: %s]',
                                                str(i + 1), BimiConfig.option('mail_path'), err)
                             return
                         mail_body += insert + '\n'
                 else:
-                    mail_body += '{}The Rabble is delighted, there are no Kings and Queens!'.format(parts[0]) + '\n'
+                    mail_body += f'{parts[0]}The Rabble is delighted, there are no Kings and Queens!\n'
 
             # substitute $accInfos in file with the account informations
             elif line.find('$accInfos:') != -1:
@@ -423,7 +430,7 @@ class BiMiTool:
             return mail_program
 
         # Check which program to start
-        if mail_program == 'icedove' or mail_program == 'thunderbird':
+        if mail_program in {'icedove', 'thunderbird'}:
             process = subprocess.Popen([mail_program, '-compose', mailto_url], stdout=subprocess.PIPE)
             if process.communicate()[0] != '':
                 self._logger.debug('%s: %s',
@@ -483,8 +490,8 @@ class BiMiTool:
         self.edit_drink_infos = self.drinks_list[(row_num,)]
         self.gui.get_object('edit_drink_entry').set_text(self.edit_drink_infos[1])
         cols = [2, 4, 6, 8, 9]
-        for i in range(5):
-            self.gui.get_object('edit_drink_spinbutton' + str(i)).set_value(self.edit_drink_infos[cols[i]])
+        for index, name in [(i, f'edit_drink_spinbutton{i}') for i in range(5)]:
+            self.gui.get_object(name).set_value(self.edit_drink_infos[cols[index]])
         self.drink_window.show()
 
     def show_credit_mail(self, account_name, credit):
@@ -539,10 +546,11 @@ class BiMiTool:
             self.accounts_list.append(item)
 
     def update_drinks_combo_boxes(self):
-        # set active items for comboxes
-        for i in range(len(self.drinks_comboxes_spinbuttons)):
-            if i < len(self.drinks_list):
-                self.drinks_comboxes_spinbuttons[i][0].set_active(i)
+        """Set active items for comboxes"""
+
+        for index, drinks_comboxes_spinbutton in enumerate(self.drinks_comboxes_spinbuttons):
+            if index < len(self.drinks_list):
+                drinks_comboxes_spinbutton[0].set_active(index)
 
     def update_drinks_list(self):
         """Loads drink infos from database into drinks_list and updates
@@ -572,7 +580,7 @@ class BiMiTool:
             cur_symbol = BimiConfig.option('currency')
             total = 0.0
             tid_date_value = [self.transactions[0][0], str(self.transactions[0][4].date()), 0.0]
-            for i, item in enumerate(self.transactions):
+            for item in self.transactions:
                 if tid_date_value[0] == item[0]:
                     tid_date_value[2] += item[3] / 100.0 * item[2]
                 else:

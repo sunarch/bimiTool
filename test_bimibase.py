@@ -30,7 +30,7 @@ class TestBimiBase(unittest.TestCase):
 
     db_path = '/tmp/unit_test_db.sqlite'
 
-    def buildDatabase(self, db_path=None):
+    def build_database(self, db_path=None):
         if not db_path:
             db_path = TestBimiBase.db_path
 
@@ -62,7 +62,7 @@ class TestBimiBase(unittest.TestCase):
                                                  date TIMESTAMP)')
         self.dbcon.commit()
 
-    def populateDatabase(self):
+    def populate_database(self):
         """ Insert entries into database to enable testing
 
         accounts
@@ -131,8 +131,8 @@ class TestBimiBase(unittest.TestCase):
         os.remove(TestBimiBase.db_path)
 
     def test_accounts(self):
-        self.buildDatabase()
-        self.populateDatabase()
+        self.build_database()
+        self.populate_database()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         acc_list = list(self.accounts_list)
@@ -140,8 +140,8 @@ class TestBimiBase(unittest.TestCase):
         self.assertEqual(acc_list, self.bb.accounts())
 
     def test_add_account_no_credit(self):
-        self.buildDatabase()
-        self.populateDatabase()
+        self.build_database()
+        self.populate_database()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         self.bb.add_account('Neuer')
@@ -149,7 +149,7 @@ class TestBimiBase(unittest.TestCase):
         self.assertEqual([(4, 'Neuer')], self.cur.fetchall())
 
     def test_add_credit(self):
-        self.buildDatabase()
+        self.build_database()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         # Empty DB test
@@ -158,15 +158,15 @@ class TestBimiBase(unittest.TestCase):
         self.assertEqual([(1, 2, 0, 1, -100)], self.cur.fetchall())
 
         # Populated DB test
-        self.populateDatabase()
+        self.populate_database()
 
         self.bb.add_credit(2, -100)
         self.cur.execute('SELECT tid,aid,did,count,value FROM transacts WHERE tid=5')
         self.assertEqual([(5, 2, 0, 1, -100)], self.cur.fetchall())
 
     def test_add_drink(self):
-        self.buildDatabase()
-        self.populateDatabase()
+        self.build_database()
+        self.populate_database()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         self.bb.add_drink(['Red Bull', 85, 80, 8, 100, 0, True])
@@ -174,8 +174,8 @@ class TestBimiBase(unittest.TestCase):
         self.assertEqual([(4, 'Red Bull', 85, 80, 8, 100, 0, False, True)], self.cur.fetchall())
 
     def test_consume_drinks_multiple_dids(self):
-        self.buildDatabase()
-        self.populateDatabase()
+        self.build_database()
+        self.populate_database()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         self.bb.consume_drinks(2, [(1, 10), (2, 20), (2, 30)])
@@ -192,8 +192,8 @@ class TestBimiBase(unittest.TestCase):
         self.assertEqual([(5, 2, 1, 10, -100), (5, 2, 2, 50, -100)], self.cur.fetchall())
 
     def test_del_account(self):
-        self.buildDatabase()
-        self.populateDatabase()
+        self.build_database()
+        self.populate_database()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         self.bb.del_account(1)
@@ -208,8 +208,8 @@ class TestBimiBase(unittest.TestCase):
         self.assertEqual([], self.cur.fetchall())
 
     def test_del_drink(self):
-        self.buildDatabase()
-        self.populateDatabase()
+        self.build_database()
+        self.populate_database()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         self.bb.del_drink(1)
@@ -218,8 +218,8 @@ class TestBimiBase(unittest.TestCase):
         self.assertEqual([(1, 'Fanta', 100, 85, 15, 5, 15, True, False)], self.cur.fetchall())
 
     def test_undo_transactions(self):
-        self.buildDatabase()
-        self.populateDatabase()
+        self.build_database()
+        self.populate_database()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         self.transacts_list.pop(0)  # remove transaction with tid=1
@@ -246,8 +246,8 @@ class TestBimiBase(unittest.TestCase):
             self.assertEqual(target[item], self.cur.fetchall())
 
     def test_drinks(self):
-        self.buildDatabase()
-        self.populateDatabase()
+        self.build_database()
+        self.populate_database()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         # filter drinks with deleted=True and remove bool from tuple list
@@ -262,8 +262,8 @@ class TestBimiBase(unittest.TestCase):
         self.assertEqual(check_list, self.bb.drinks())
 
     def test_set_drink(self):
-        self.buildDatabase()
-        self.populateDatabase()
+        self.build_database()
+        self.populate_database()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         self.bb.set_drink(2, ['fritz-kola', 101, 86, 16, 24, 3, True])
@@ -272,14 +272,14 @@ class TestBimiBase(unittest.TestCase):
         self.assertEqual([(2, 'fritz-kola', 101, 86, 16, 24, 3, False, True)], self.cur.fetchall())
 
     def test_kings(self):
-        self.buildDatabase()
+        self.build_database()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         # Empty DB test
         self.assertEqual([], self.bb.kings())
 
         # Populated DB test
-        self.populateDatabase()
+        self.populate_database()
 
         # Testcase: Same drink name but different dids
         self.bb.add_drink(['MultiDrink', 4, 0, 0, 0, 0, True])
@@ -291,8 +291,8 @@ class TestBimiBase(unittest.TestCase):
         self.assertEqual(expected_result, self.bb.kings())
 
     def test_transactions(self):
-        self.buildDatabase()
-        self.populateDatabase()
+        self.build_database()
+        self.populate_database()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
         # tid, drinks.name, count, value, date)

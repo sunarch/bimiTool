@@ -50,5 +50,5 @@ for item in version_subs_files:
 
 # Remove files from git
 for item in git_rm_files:
-    process = subprocess.Popen(['git', 'rm', item], stdout=subprocess.PIPE)
-    sys.stdout.write(process.communicate()[0])
+    with subprocess.Popen(['git', 'rm', item], stdout=subprocess.PIPE) as process:
+        sys.stdout.write(process.communicate()[0])
