@@ -36,32 +36,33 @@ except ImportError:
 
 
 class BiMiTool:
+
     def __init__(self):
-        self.account_window = None            ##< The most recent popup window to add/edit accounts
-        self.drink_window = None              ##< The most recent popup window to add/edit drinks
-        self.mail_window = None               ##< The most recent popup window to get the mail text
-        self.edit_acc_infos = []              ##< Stores [account_id, name] while edit_account window is open
-        self.edit_drink_infos = []            ##< Stores row from drinks_list while edit_drink window is open
-        self.event_pos = []                   ##< [x,y] pos from event object that activated the last context menu popup
-        self.transactions = []                ##< Contains all informations and transactions from one account
-        self.drinks_comboxes_spinbuttons = [] ##< Contains tuples (combobox,spinbutton)
+        self.account_window = None             # The most recent popup window to add/edit accounts
+        self.drink_window = None               # The most recent popup window to add/edit drinks
+        self.mail_window = None                # The most recent popup window to get the mail text
+        self.edit_acc_infos = []               # Stores [account_id, name] while edit_account window is open
+        self.edit_drink_infos = []             # Stores row from drinks_list while edit_drink window is open
+        self.event_pos = []                    # [x,y] pos from event object that activated the last context menu popup
+        self.transactions = []                 # Contains all informations and transactions from one account
+        self.drinks_comboxes_spinbuttons = []  # Contains tuples (combobox,spinbutton)
         self.transactions_list = Gtk.ListStore(int, str, str)
         self.accounts_list = Gtk.ListStore(int, str)
-        ## \var self.drinks_list for each float a str for visualisation
+        # \var self.drinks_list for each float a str for visualisation
         # (did, dname, sPrice, str sPrice, pPrice, str pPrice, deposit, str deposit, fBottles, eBottles, kings, str for comboboxes)
         self.drinks_list = Gtk.ListStore(int, str, float, str, float, str, float, str, int, int, bool, str)
 
         self._logger = logging.getLogger('BiMiTool')
 
         # Create DataBase-object
-        self.db = BimiBase( BimiConfig.option('db_path') )
+        self.db = BimiBase(BimiConfig.option('db_path'))
 
         # Load main window from GtkBuilder file
         self.gui = Gtk.Builder()
         widgets = ['main_window', 'image1', 'image2', 'image3', 'image1',
                    'drinks_menu', 'accounts_menu', 'transactions_menu',
                    'adjustment7', 'adjustment8', 'adjustment9', 'adjustment10']
-        self.gui.add_objects_from_file( BimiConfig.option('gui_path'), widgets )
+        self.gui.add_objects_from_file(BimiConfig.option('gui_path'), widgets)
         try:
             # Create our dictionay and connect it
             dic = {'consume_clicked': self.consumeDrinks,
@@ -82,9 +83,9 @@ class BiMiTool:
                    'edit_drink': self.popEditDrinkWindow,
 
                    'generate_mail': self.showSummaryMail,
-                   #"preferences_activate": self.prefsPopup,
+                   # "preferences_activate": self.prefsPopup,
                    'main_window_destroyed': Gtk.main_quit,
-                   'quit_activate' : Gtk.main_quit}
+                   'quit_activate': Gtk.main_quit}
             self.gui.connect_signals(dic)
         except:
             self._logger.critical('Autoconnection of widgets failed! Check if %s exists.', BimiConfig.option('gui_path'))
@@ -105,10 +106,10 @@ class BiMiTool:
         self.drinks_view = self.gui.get_object("drinks_view")
         self.drinks_view.set_model(self.drinks_list)
         col_names = ['Name', 'Sales Price', 'Purchase Price', 'Deposit', 'Full Bottles', 'Empty Bottles', 'Kings']
-        render_cols = [1,3,5,7,8,9,10]
+        render_cols = [1, 3, 5, 7, 8, 9, 10]
         for i in range(len(col_names)):
             renderer = Gtk.CellRendererText()
-            renderer.set_alignment(1.0,0.5)
+            renderer.set_alignment(1.0, 0.5)
             drinks_view_col = Gtk.TreeViewColumn(col_names[i], renderer, text=render_cols[i])
             self.drinks_view.append_column(drinks_view_col)
 
@@ -118,7 +119,7 @@ class BiMiTool:
         col_names = ['Date', 'Value']
         for i in range(len(col_names)):
             renderer = Gtk.CellRendererText()
-            renderer.set_alignment(1.0,0.5)
+            renderer.set_alignment(1.0, 0.5)
             trans_view_col = Gtk.TreeViewColumn(col_names[i], renderer, text=i+1)
             self.transactions_view.append_column(trans_view_col)
 
@@ -137,7 +138,7 @@ class BiMiTool:
             spinbutton.set_adjustment(adjustment)
             spinbutton.set_numeric(True)
             spinbutton.set_alignment(1.0)
-            self.drinks_comboxes_spinbuttons.append( (cbox, spinbutton) )
+            self.drinks_comboxes_spinbuttons.append((cbox, spinbutton))
 
             grid.attach(cbox, 0, i, 1, 1)
             grid.attach(spinbutton, 1, i, 1, 1)
@@ -148,14 +149,13 @@ class BiMiTool:
 
         self.main_window.show_all()
 
-
-    ## Called if mouse button is pressed in self.accounts_view
+    # Called if mouse button is pressed in self.accounts_view
     #
     #  Checks for right mouse click and opens context menu
     def accountsViewClicked(self, widget, event):
-        if (event.button == 3):
-            self.event_pos = (event.x,event.y)
-            if widget.get_path_at_pos(event.x,event.y) is None:
+        if event.button == 3:
+            self.event_pos = (event.x, event.y)
+            if widget.get_path_at_pos(event.x, event.y) is None:
                 self.gui.get_object('acc_menu_edit').set_sensitive(False)
                 self.gui.get_object('acc_menu_delete').set_sensitive(False)
             else:
@@ -164,17 +164,14 @@ class BiMiTool:
             self.accounts_context_menu.popup(None, None, None, None, event.button, event.time)
             return True
 
-
     def accountWindowCancel(self, widget):
         self.account_window.destroy()
-
 
     def accountWindowDestroyed(self, widget):
         self.account_window = None
         self.edit_acc_infos = []
 
-
-    ## Commits data entered in account_window to the database
+    # Commits data entered in account_window to the database
     def accountWindowSave(self, widget):
         self.account_window.hide()
         acc_name = self.gui.get_object('edit_acc_entry').get_text()
@@ -183,49 +180,45 @@ class BiMiTool:
             if acc_name != self.edit_acc_infos[1]:
                 self.db.setAccountName(self.edit_acc_infos[0], acc_name)
             if credit != 0:
-                self.db.addCredit(self.edit_acc_infos[0],credit)
+                self.db.addCredit(self.edit_acc_infos[0], credit)
                 self.showCreditMail(acc_name, credit/100.0)
         else:
             self.db.addAccount(acc_name, credit)
         self.updateAccountsView()
-        #TODO: reselect account after adding credit or select account after adding it
+        # TODO: reselect account after adding credit or select account after adding it
         self.account_window.destroy()
 
-
-    ## Builds the account window and connects signals
+    # Builds the account window and connects signals
     #
     #  Drops following after being called for the second time 0_o
     #  Gtk-CRITICAL **: gtk_spin_button_get_adjustment: assertion `GTK_IS_SPIN_BUTTON (spin_button)' failed
     def buildAccountWindow(self):
-        self.gui.add_objects_from_file( BimiConfig.option('gui_path'), ['account_window', 'adjustment1'] )
+        self.gui.add_objects_from_file(BimiConfig.option('gui_path'), ['account_window', 'adjustment1'])
         self.account_window = self.gui.get_object('account_window')
         self.gui.connect_signals({'account_window_cancel': self.accountWindowCancel,
                                   'account_window_save': self.accountWindowSave,
                                   'account_window_destroyed': self.accountWindowDestroyed})
 
-
-    ## Builds the drink window and connects signals
+    # Builds the drink window and connects signals
     #
     #  No problems with gtk_spin_button_get_adjustment here, stupid gtk >_<
     def buildDrinkWindow(self):
         widgets = ['drink_window', 'adjustment2', 'adjustment3', 'adjustment4', 'adjustment5', 'adjustment6']
-        self.gui.add_objects_from_file( BimiConfig.option('gui_path'), widgets )
+        self.gui.add_objects_from_file(BimiConfig.option('gui_path'), widgets)
         self.drink_window = self.gui.get_object('drink_window')
         self.gui.connect_signals({'drink_window_cancel': self.drinkWindowCancel,
                                   'drink_window_save': self.drinkWindowSave,
                                   'drink_window_destroyed': self.drinkWindowDestroyed})
 
-
     def buildMailWindow(self):
-        self.gui.add_objects_from_file( BimiConfig.option('gui_path'), ['mail_window', 'mail_buffer'] )
+        self.gui.add_objects_from_file(BimiConfig.option('gui_path'), ['mail_window', 'mail_buffer'])
         self.mail_window = self.gui.get_object('mail_window')
         self.gui.connect_signals({'mail_window_destroyed': self.mailWindowDestroyed})
-        text_view =  self.gui.get_object('mail_view')
-        text_view.modify_font( Pango.FontDescription('monospace normal 10') )
-
+        text_view = self.gui.get_object('mail_view')
+        text_view.modify_font(Pango.FontDescription('monospace normal 10'))
 
     def consumeDrinks(self, widget):
-        lstore, it =  self.accounts_view.get_selection().get_selected()
+        lstore, it = self.accounts_view.get_selection().get_selected()
         if it is None:
             self._logger.info("No account selected, can't add drinks :(")
             return
@@ -233,13 +226,13 @@ class BiMiTool:
         dids_amounts = []
         row_num = -1
         amount = 0
-        for cbox,sbutton in self.drinks_comboxes_spinbuttons:
+        for cbox, sbutton in self.drinks_comboxes_spinbuttons:
             row_num = cbox.get_active()
             amount = sbutton.get_value_as_int()
             if row_num != -1 and amount > 0:
-                dids_amounts.append( (self.drinks_list[(row_num,0)][0], amount) )
+                dids_amounts.append((self.drinks_list[(row_num, 0)][0], amount))
 
-        self.db.consumeDrinks( lstore.get_value(it, 0), dids_amounts )
+        self.db.consumeDrinks(lstore.get_value(it, 0), dids_amounts)
 
         # Reset Spinbuttons
         for item in self.drinks_comboxes_spinbuttons:
@@ -247,29 +240,25 @@ class BiMiTool:
 
         self.updateTransactionsView(self.accounts_view)
 
-
     def deleteAccount(self, widget):
         row_num = self.accounts_view.get_path_at_pos(self.event_pos[0], self.event_pos[1])[0]
-        self.db.delAccount( self.accounts_list[(row_num,0)][0] )
+        self.db.delAccount(self.accounts_list[(row_num, 0)][0])
         self.updateAccountsView()
-
 
     def deleteDrink(self, widget):
         row_num = self.drinks_view.get_path_at_pos(self.event_pos[0], self.event_pos[1])[0]
-        self.db.delDrink( self.drinks_list[(row_num,0)][0] )
+        self.db.delDrink(self.drinks_list[(row_num, 0)][0])
         self.updateDrinksList()
-
 
     def undoTransaction(self, widget):
         row_num = self.transactions_view.get_path_at_pos(self.event_pos[0], self.event_pos[1])[0]
-        self.db.undoTransaction( self.transactions_list[(row_num,0)][0] )
+        self.db.undoTransaction(self.transactions_list[(row_num, 0)][0])
         self.updateTransactionsView(self.accounts_view)
 
-
     def drinksViewClicked(self, widget, event):
-        if (event.button == 3):
-            self.event_pos = (event.x,event.y)
-            if widget.get_path_at_pos(event.x,event.y) is None:
+        if event.button == 3:
+            self.event_pos = (event.x, event.y)
+            if widget.get_path_at_pos(event.x, event.y) is None:
                 self.gui.get_object('drinks_menu_edit').set_sensitive(False)
                 self.gui.get_object('drinks_menu_delete').set_sensitive(False)
             else:
@@ -277,24 +266,21 @@ class BiMiTool:
                 self.gui.get_object('drinks_menu_delete').set_sensitive(True)
             self.drinks_context_menu.popup(None, None, None, None, event.button, event.time)
 
-
     def drinkWindowCancel(self, widget):
         self.drink_window.destroy()
-
 
     def drinkWindowDestroyed(self, widget):
         self.drink_window = None
         self.edit_drink_infos = []
 
-
     def drinkWindowSave(self, widget):
         self.drink_window.hide()
         values = []
-        values.append( self.gui.get_object('edit_drink_entry').get_text() )
+        values.append(self.gui.get_object('edit_drink_entry').get_text())
         for i in range(3):
             values.append(int(round(100*self.gui.get_object('edit_drink_spinbutton'+str(i)).get_value())))
-        values.append( self.gui.get_object('edit_drink_spinbutton3').get_value() )
-        values.append( self.gui.get_object('edit_drink_spinbutton4').get_value() )
+        values.append(self.gui.get_object('edit_drink_spinbutton3').get_value())
+        values.append(self.gui.get_object('edit_drink_spinbutton4').get_value())
         values.append(True)
 
         if self.edit_drink_infos:
@@ -304,8 +290,7 @@ class BiMiTool:
         self.drink_window.destroy()
         self.updateDrinksList()
 
-
-    ## Generates mail text from credit_mail option and database
+    # Generates mail text from credit_mail option and database
     #
     #  \param account_name \b String containing the name of the account which recived the credit
     #  \param credit       \b Float containing the amount of added credit
@@ -317,15 +302,14 @@ class BiMiTool:
         mail_subj = BimiConfig.option('credit_mail_subject').replace('$amount', str(credit) + BimiConfig.option('currency'))
         return {'body': mail_body, 'subject': mail_subj}
 
-
-    ## Generates mail text from summary_mail option and database
+    # Generates mail text from summary_mail option and database
     #
     #  \return \b Dictionary containing the 'body' and 'subject' strings of the summary mail
     #
     def generateSummaryMail(self):
         mail_string = BimiConfig.option('summary_mail_text').split('\n')
         mail_body = ''
-        for i,line in enumerate(mail_string):
+        for i, line in enumerate(mail_string):
             # substitute $kings in file with the kings information
             if line.find('$kings:') != -1:
                 parts = list(line.partition('$kings:'))
@@ -357,13 +341,13 @@ class BiMiTool:
 
                 accnames_balances = []
                 for aid, name in self.db.accounts():
-                    balance = sum(map( lambda x: x[2]*x[3], self.db.transactions(aid) )) / 100.0 - BimiConfig.option('deposit')
-                    accnames_balances.append( (name, balance) )
+                    balance = sum(map(lambda x: x[2]*x[3], self.db.transactions(aid))) / 100.0 - BimiConfig.option('deposit')
+                    accnames_balances.append((name, balance))
 
                 # Check if there are accounts in DB
                 if accnames_balances:
                     len_acc = max(map(lambda x: len(x[0]), accnames_balances))
-                    len_balance = max(map(lambda x: len(str(int(x[1]))), accnames_balances)) + 3 # +3 because .00
+                    len_balance = max(map(lambda x: len(str(int(x[1]))), accnames_balances)) + 3  # +3 because .00
                     parts[2] = parts[2].replace('$name', '{name:<'+str(len_acc)+'}', 1)
                     parts[2] = parts[2].replace('$balance', '{balance:>'+str(len_balance)+'.2f}'+cur_symbol, 1)
 
@@ -381,12 +365,10 @@ class BiMiTool:
 
         return {'subject': BimiConfig.option('summary_mail_subject'), 'body': mail_body}
 
-
     def mailWindowDestroyed(self, widget, stuff=None):
         self.mail_window = None
 
-
-    ## Open mail program if option was selected
+    # Open mail program if option was selected
     #
     #  Before opening the mail program in compose mode the strings in
     #  mailto_dict are convertet mostly according to RFC 2368. The only
@@ -401,84 +383,79 @@ class BiMiTool:
         # Build mailto url from dictionary
         if mail_program is not None:
             if 'to' in mailto_dict:
-                mailto_url = 'mailto:{}?'.format(urllib.parse.quote(mailto_dict['to'].encode('utf-8')) )
+                mailto_url = 'mailto:{}?'.format(urllib.parse.quote(mailto_dict['to'].encode('utf-8')))
             else:
                 mailto_url = 'mailto:?'
             if 'subject' in mailto_dict:
-                mailto_url+= 'subject={}&'.format(urllib.parse.quote(mailto_dict['subject'].encode('utf-8')) )
+                mailto_url += 'subject={}&'.format(urllib.parse.quote(mailto_dict['subject'].encode('utf-8')))
             if 'body' in mailto_dict:
-                mailto_url+= 'body={}'.format(urllib.parse.quote(mailto_dict['body'].encode('utf-8')) )
+                mailto_url += 'body={}'.format(urllib.parse.quote(mailto_dict['body'].encode('utf-8')))
         else:
             return mail_program
 
         # Check which program to start
-        if mail_program == 'icedove' or  mail_program == 'thunderbird':
+        if mail_program == 'icedove' or mail_program == 'thunderbird':
             process = subprocess.Popen([mail_program, "-compose", mailto_url], stdout=subprocess.PIPE)
             if process.communicate()[0] != '':
                 self._logger.debug("%s: %s", mail_program, process.communicate()[0])
         return mail_program
 
-
-    ## Opens account_window
+    # Opens account_window
     def popAddAccWindow(self, widget):
         if self.account_window is None:
             self.buildAccountWindow()
         else:
-            #TODO: Raise window
+            # TODO: Raise window
             pass
         self.account_window.set_title('Add account')
         self.gui.get_object('edit_acc_entry').set_text('Insert name')
-        self.gui.get_object('edit_acc_entry').select_region(0,-1)
+        self.gui.get_object('edit_acc_entry').select_region(0, -1)
         self.gui.get_object('edit_acc_spinbutton').set_value(0.0)
         self.account_window.show()
-
 
     def popAddDrinkWindow(self, widget):
         if self.drink_window is None:
             self.buildDrinkWindow()
         else:
-            #TODO: Raise window
+            # TODO: Raise window
             pass
         self.drink_window.set_title('Add drink')
         self.gui.get_object('edit_drink_entry').set_text('Insert name')
-        self.gui.get_object('edit_drink_entry').select_region(0,-1)
+        self.gui.get_object('edit_drink_entry').select_region(0, -1)
         for i in range(5):
             self.gui.get_object('edit_drink_spinbutton'+str(i)).set_value(0)
         self.drink_window.show()
-
 
     ## Opens account_window and loads account infos
     def popEditAccWindow(self, widget):
         if self.account_window is None:
             self.buildAccountWindow()
         else:
-            #TODO: Raise window
+            # TODO: Raise window
             pass
         self.account_window.set_title('Edit account')
         row_num = self.accounts_view.get_path_at_pos(self.event_pos[0], self.event_pos[1])[0]
-        self.edit_acc_infos =  self.accounts_list[(row_num,)]
-        self.gui.get_object('edit_acc_entry').set_text( self.edit_acc_infos[1] )
+        self.edit_acc_infos = self.accounts_list[(row_num,)]
+        self.gui.get_object('edit_acc_entry').set_text(self.edit_acc_infos[1])
         self.gui.get_object('edit_acc_spinbutton').set_value(0.0)
         self.account_window.show()
-
 
     def popEditDrinkWindow(self, widget):
         if self.drink_window is None:
             self.buildDrinkWindow()
         else:
-            #TODO: Raise window
+            # TODO: Raise window
             pass
         self.drink_window.set_title('Edit drink')
         row_num = self.drinks_view.get_path_at_pos(self.event_pos[0], self.event_pos[1])[0]
         self.edit_drink_infos = self.drinks_list[(row_num,)]
-        self.gui.get_object('edit_drink_entry').set_text( self.edit_drink_infos[1] )
-        cols = [2,4,6,8,9]
+        self.gui.get_object('edit_drink_entry').set_text(self.edit_drink_infos[1])
+        cols = [2, 4, 6, 8, 9]
         for i in range(5):
-            self.gui.get_object('edit_drink_spinbutton'+str(i)).set_value( self.edit_drink_infos[cols[i]] )
+            self.gui.get_object('edit_drink_spinbutton'+str(i)).set_value(self.edit_drink_infos[cols[i]])
         self.drink_window.show()
 
-
-    ## Open mail program in compose mode with credit_mail data
+    # Open mail program in compose mode with credit_mail data
     #
     #  \param account_name \b String containig the name of the account holder
     #  \param credit       \b Float representing the amount of added credit
@@ -487,8 +464,7 @@ class BiMiTool:
         mail_dict = self.generateCreditMail(account_name, credit)
         self.openMailProgram(mail_dict)
 
-
-    ## Show summary mail in a gtk+ window or opens mail program
+    # Show summary mail in a gtk+ window or opens mail program
     #
     #  size_request of scrolledwindow and textview doesn't work properly,
     #  which results in a too small window. stupid gtk
@@ -499,36 +475,32 @@ class BiMiTool:
             if self.mail_window is None:
                 self.buildMailWindow()
             else:
-                #TODO: Raise window
+                # TODO: Raise window
                 pass
             mail_buffer = self.gui.get_object('mail_buffer')
             mail_buffer.set_text(mail_dict['subject'] + '\n\n' + mail_dict['body'])
             self.mail_window.show_all()
 
-
     def tabSwitched(self, widget, tab_child, activated_tab):
         if activated_tab == 1:
             self.updateDrinksList()
 
-
     def transactionsViewClicked(self, widget, event):
-        if (event.button == 3):
-            self.event_pos = (event.x,event.y)
-            if widget.get_path_at_pos(event.x,event.y) is not None:
+        if event.button == 3:
+            self.event_pos = (event.x, event.y)
+            if widget.get_path_at_pos(event.x, event.y) is not None:
                 row_num = self.transactions_view.get_path_at_pos(event.x, event.y)[0]
                 # Check if a transaction was clicked
-                if self.transactions_list[(row_num,0)][0] != -1:
+                if self.transactions_list[(row_num, 0)][0] != -1:
                     self.gui.get_object('transactions_menu_delete').set_sensitive(True)
                     self.transactions_context_menu.popup(None, None, None, None, event.button, event.time)
 
-
-    ## Loads accounts infos from database and updates accounts_list
+    # Loads accounts infos from database and updates accounts_list
     def updateAccountsView(self):
         self.accounts_list.clear()
         db_account_list = self.db.accounts()
         for item in db_account_list:
             self.accounts_list.append(item)
-
 
     def updateDrinksComboBoxes(self):
         # set active items for comboxes
@@ -536,35 +508,33 @@ class BiMiTool:
             if i < len(self.drinks_list):
                 self.drinks_comboxes_spinbuttons[i][0].set_active(i)
 
-
     # Loads drink infos from database into drinks_list and updates
     # widget dependent on drinks_list.
     def updateDrinksList(self):
         self.drinks_list.clear()
         cur_symbol = BimiConfig.option('currency')
         for item in self.db.drinks():
-            self.drinks_list.append( [item[0], item[1],
-                                      item[2]/100.0, str(item[2]/100.0) + cur_symbol,
-                                      item[3]/100.0, str(item[3]/100.0) + cur_symbol,
-                                      item[4]/100.0, str(item[4]/100.0) + cur_symbol,
-                                      item[5], item[6], item[7],
-                                      item[1] + ' @ ' + str(item[2]/100.0) + cur_symbol] )
+            self.drinks_list.append([item[0], item[1],
+                                     item[2]/100.0, str(item[2]/100.0) + cur_symbol,
+                                     item[3]/100.0, str(item[3]/100.0) + cur_symbol,
+                                     item[4]/100.0, str(item[4]/100.0) + cur_symbol,
+                                     item[5], item[6], item[7],
+                                     item[1] + ' @ ' + str(item[2]/100.0) + cur_symbol])
         self.updateDrinksComboBoxes()
-
 
     def updateTransactionsView(self, widget):
         self.transactions_list.clear()
-        lstore, it =  self.accounts_view.get_selection().get_selected()
+        lstore, it = self.accounts_view.get_selection().get_selected()
         if it is None:
             return
-        self.transactions = self.db.transactions( lstore.get_value(it, 0) )
+        self.transactions = self.db.transactions(lstore.get_value(it, 0))
 
         if self.transactions:
             # show only one row per transaction
             cur_symbol = BimiConfig.option('currency')
             total = 0.0
             tid_date_value = [self.transactions[0][0], str(self.transactions[0][4].date()), 0.0]
-            for i,item in enumerate(self.transactions):
+            for i, item in enumerate(self.transactions):
                 if tid_date_value[0] == item[0]:
                     tid_date_value[2] += item[3]/100.0*item[2]
                 else:
@@ -577,14 +547,15 @@ class BiMiTool:
             tid_date_value[2] = str(tid_date_value[2]) + cur_symbol
             self.transactions_list.append(tid_date_value)
             if 0.009 < BimiConfig.option('deposit'):
-                self.transactions_list.append( [-1, 'Deposit', str(-BimiConfig.option('deposit')) + cur_symbol] )
-            self.transactions_list.append( [-1, 'Balance', str(total - BimiConfig.option('deposit')) + cur_symbol] )
+                self.transactions_list.append([-1, 'Deposit', str(-BimiConfig.option('deposit')) + cur_symbol])
+            self.transactions_list.append([-1, 'Balance', str(total - BimiConfig.option('deposit')) + cur_symbol])
 
 
 if __name__ == "__main__":
     # Parse arguments
-    parser = argparse.ArgumentParser(add_help=True, description='This program helps managing beverage consumation in dormitories')
-    parser.add_argument('-d','--debug',
+    parser = argparse.ArgumentParser(add_help=True,
+                                     description='This program helps managing beverage consumation in dormitories')
+    parser.add_argument('-d', '--debug',
                         action='store_true',
                         default=False,
                         dest='debug',

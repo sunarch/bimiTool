@@ -36,14 +36,14 @@ class BimiConfig:
     _config_file_path = os.path.join(_script_dir, 'bmt_config.yaml')
 
     # Initialize default configuration
-    _default_config_dict = {'db_path': os.path.join(_script_dir,'bmt_db.sqlite'),
-                            'gui_path': os.path.join(_script_dir,'bmt.glade'),
-                            'mail_path': os.path.join(_script_dir,'mail.txt'),
+    _default_config_dict = {'db_path': os.path.join(_script_dir, 'bmt_db.sqlite'),
+                            'gui_path': os.path.join(_script_dir, 'bmt.glade'),
+                            'mail_path': os.path.join(_script_dir, 'mail.txt'),
                             'currency': '€',
                             'deposit': 0.0,
                             'num_comboboxes': 4,
-                            'mail_text':\
-"""Guten Tag werter Flur,
+                            'mail_text':
+                                """Guten Tag werter Flur,
 die aktuelle Abrechnung der Getränkeliste zeigt folgende Kontostände:
 
     $accInfos:$name $balance
@@ -53,13 +53,12 @@ des Weiteren präsentiere ich für jede Getränkeklasse die Königinnen und Kön
     $kings:$drink-King ist $name mit $amount Flaschen
 
 Auf ein munteres Weiterzechen!
-Euer BiMi"""               }
+Euer BiMi"""}
 
     _config_dict = _default_config_dict
-    _rm_opts = ['db_path', 'gui_path', 'mail_path'] ##< Options that will be removed before dumping the config
+    _rm_opts = ['db_path', 'gui_path', 'mail_path']  # Options that will be removed before dumping the config
 
-
-    ## Returns a copy of _config_dict.
+    # Returns a copy of _config_dict.
     #
     #  \return \b Dictionary copy containing all config options
     #
@@ -67,8 +66,7 @@ Euer BiMi"""               }
     def config():
         return copy.deepcopy(BimiConfig._config_dict)
 
-
-    ## Loads config options from a file or sets the defaults
+    # Loads config options from a file or sets the defaults
     #
     #  Raises exceptions if no file can be found at conf_file_path or if file
     #  is not a yaml file.
@@ -108,12 +106,11 @@ Euer BiMi"""               }
             return
 
         # Check for mandatory but missing options
-        for k,v in BimiConfig._default_config_dict.items():
+        for k, v in BimiConfig._default_config_dict.items():
             if BimiConfig.option(k) is None:
                 BimiConfig.setOption(k, v)
 
-
-    ## Returns a copy of the specified option or None if option was not found
+    # Returns a copy of the specified option or None if option was not found
     #
     #  \param option \b String (const) key from dictionary _config_dict.
     #  \return \b Object associated to the option string or None if option wasn't found
@@ -123,11 +120,10 @@ Euer BiMi"""               }
         try:
             return copy.deepcopy(BimiConfig._config_dict[str(option)])
         except KeyError:
-            BimiConfig._logger.debug('Option %s not found!',option)
+            BimiConfig._logger.debug('Option %s not found!', option)
             return None
 
-
-    ## Sets the _config_dict to a copy of the given dictionary
+    # Sets the _config_dict to a copy of the given dictionary
     #
     #  \param conf_dict \b Dictionary (const) which will be copied and used as new config
     #
@@ -136,8 +132,7 @@ Euer BiMi"""               }
         BimiConfig._config_dict = copy.deepcopy(conf_dict)
         BimiConfig.writeConfig()
 
-
-    ## Sets or adds a config option in _config_dict
+    # Sets or adds a config option in _config_dict
     #
     #  \param option \b String (const) key from dictionary _config_dict
     #  \param value  \b Object (const) which will be assoziated with the key
@@ -145,11 +140,10 @@ Euer BiMi"""               }
     @staticmethod
     def setOption(option, value):
         if option not in BimiConfig._config_dict:
-            BimiConfig._logger.debug('Adding option %s to _config_dict.',option)
+            BimiConfig._logger.debug('Adding option %s to _config_dict.', option)
         BimiConfig._config_dict[option] = copy.deepcopy(value)
 
-
-    ## Writes _config_dict to a yaml file.
+    # Writes _config_dict to a yaml file.
     #
     #  Options specified in _rm_opts are removed before writing.
     #  TODO: enhance this function.
