@@ -225,6 +225,8 @@ class BiMiTool:
         self.mail_window = self.gui.get_object('mail_window')
         self.gui.connect_signals({'mail_window_destroyed': self.mail_window_destroyed})
         text_view = self.gui.get_object('mail_view')
+
+        # NOTE: Gtk.Widget.modify_font is deprecated
         text_view.modify_font(Pango.FontDescription('monospace normal 10'))
 
     def consume_drinks(self, widget):
