@@ -26,9 +26,9 @@ import sys
 try:
     import yaml
 except ImportError:
-    print("----------------------------------------------------------------------")
-    print("| Check your python yaml setup! (Debian/Ubuntu: install python-yaml) |")
-    print("----------------------------------------------------------------------")
+    print('----------------------------------------------------------------------')
+    print('| Check your python yaml setup! (Debian/Ubuntu: install python-yaml) |')
+    print('----------------------------------------------------------------------')
     sys.exit(1)
 
 
@@ -46,7 +46,7 @@ class BimiConfig:
                             'deposit': 0.0,
                             'num_comboboxes': 4,
                             'mail_text':
-                                """Guten Tag werter Flur,
+                                '''Guten Tag werter Flur,
 die aktuelle Abrechnung der Getränkeliste zeigt folgende Kontostände:
 
     $accInfos:$name $balance
@@ -56,7 +56,7 @@ des Weiteren präsentiere ich für jede Getränkeklasse die Königinnen und Kön
     $kings:$drink-King ist $name mit $amount Flaschen
 
 Auf ein munteres Weiterzechen!
-Euer BiMi"""}
+Euer BiMi'''}
 
     _config_dict = _default_config_dict
     _rm_opts = ['db_path', 'gui_path', 'mail_path']  # Options that will be removed before dumping the config
@@ -184,4 +184,4 @@ Euer BiMi"""}
                 yaml.safe_dump(dump_dict, stream=yaml_file,
                                default_flow_style=False, allow_unicode=True, encoding='utf-8')
         except IOError as io:
-            BimiConfig._logger.error("Oh noes, file %s not writeable! [io: %s]", BimiConfig._config_file_path, io)
+            BimiConfig._logger.error('Oh noes, file %s not writeable! [io: %s]', BimiConfig._config_file_path, io)

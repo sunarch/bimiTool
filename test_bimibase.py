@@ -28,7 +28,7 @@ import bimibase
 
 class TestBimiBase(unittest.TestCase):
 
-    db_path = "/tmp/unit_test_db.sqlite"
+    db_path = '/tmp/unit_test_db.sqlite'
 
     def buildDatabase(self, db_path=None):
         if not db_path:
@@ -37,10 +37,10 @@ class TestBimiBase(unittest.TestCase):
         self.dbcon = sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)
         self.cur = self.dbcon.cursor()
 
-        self.cur.execute("CREATE TABLE accounts(aid INTEGER PRIMARY KEY,\
-                                                name TEXT)")
+        self.cur.execute('CREATE TABLE accounts(aid INTEGER PRIMARY KEY,\
+                                                name TEXT)')
 
-        self.cur.execute("CREATE TABLE drinks(did INTEGER PRIMARY KEY,\
+        self.cur.execute('CREATE TABLE drinks(did INTEGER PRIMARY KEY,\
                                               name TEXT,\
                                               sales_price INTEGER,\
                                               purchase_price INTEGER,\
@@ -48,18 +48,18 @@ class TestBimiBase(unittest.TestCase):
                                               bottles_full INTEGER,\
                                               bottles_empty INTEGER,\
                                               deleted BOOL,\
-                                              kings BOOL)")
+                                              kings BOOL)')
 
-        self.cur.execute("CREATE TABLE kings(aid INTEGER,\
+        self.cur.execute('CREATE TABLE kings(aid INTEGER,\
                                              did INTEGER,\
-                                             quaffed INTEGER)")
+                                             quaffed INTEGER)')
 
-        self.cur.execute("CREATE TABLE transacts(tid INTEGER,\
+        self.cur.execute('CREATE TABLE transacts(tid INTEGER,\
                                                  aid INTEGER,\
                                                  did INTEGER,\
                                                  count INTEGER,\
                                                  value INTEGER,\
-                                                 date TIMESTAMP)")
+                                                 date TIMESTAMP)')
         self.dbcon.commit()
 
     def populateDatabase(self):
@@ -92,24 +92,24 @@ class TestBimiBase(unittest.TestCase):
               4   1   2     2   100   d4
         """
 
-        self.cur.execute("DELETE FROM accounts")
-        self.cur.execute("DELETE FROM drinks")
-        self.cur.execute("DELETE FROM kings")
-        self.cur.execute("DELETE FROM transacts")
+        self.cur.execute('DELETE FROM accounts')
+        self.cur.execute('DELETE FROM drinks')
+        self.cur.execute('DELETE FROM kings')
+        self.cur.execute('DELETE FROM transacts')
 
-        self.accounts_list = [(1, "Noob"),
-                              (2, "Max Mustermann"),
-                              (3, "Testa")]
-        self.cur.executemany("INSERT INTO accounts VALUES(?,?)", self.accounts_list)
+        self.accounts_list = [(1, 'Noob'),
+                              (2, 'Max Mustermann'),
+                              (3, 'Testa')]
+        self.cur.executemany('INSERT INTO accounts VALUES(?,?)', self.accounts_list)
 
-        self.drinks_list = [(1, "Fanta", 100, 85, 15, 5, 15, False, True),
-                            (2, "Cola", 100, 85, 15, 23, 2, False, False),
-                            (3, "Geloescht", 20, 19, 25, 0, 300, True, False)]
-        self.cur.executemany("INSERT INTO drinks VALUES(?,?,?,?,?,?,?,?,?)", self.drinks_list)
+        self.drinks_list = [(1, 'Fanta', 100, 85, 15, 5, 15, False, True),
+                            (2, 'Cola', 100, 85, 15, 23, 2, False, False),
+                            (3, 'Geloescht', 20, 19, 25, 0, 300, True, False)]
+        self.cur.executemany('INSERT INTO drinks VALUES(?,?,?,?,?,?,?,?,?)', self.drinks_list)
 
         self.kings_list = [(1, 1, 10), (1, 2, 2),
                            (3, 1, 5), (3, 3, 300)]
-        self.cur.executemany("INSERT INTO kings VALUES(?,?,?)", self.kings_list)
+        self.cur.executemany('INSERT INTO kings VALUES(?,?,?)', self.kings_list)
 
         self.d1 = datetime.datetime.now()
         self.d2 = datetime.datetime.now()
@@ -121,7 +121,7 @@ class TestBimiBase(unittest.TestCase):
                                (3, 3, 3, 300, 20, self.d3),
                                (4, 1, 1, 10, 100, self.d4),
                                (4, 1, 2, 2, 100, self.d4)]
-        self.cur.executemany("INSERT INTO transacts VALUES(?,?,?,?,?,?)", self.transacts_list)
+        self.cur.executemany('INSERT INTO transacts VALUES(?,?,?,?,?,?)', self.transacts_list)
         self.dbcon.commit()
 
     def tearDown(self):
@@ -144,9 +144,9 @@ class TestBimiBase(unittest.TestCase):
         self.populateDatabase()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
-        self.bb.add_account("Neuer")
-        self.cur.execute("SELECT * FROM accounts WHERE aid=4")
-        self.assertEqual([(4, "Neuer")], self.cur.fetchall())
+        self.bb.add_account('Neuer')
+        self.cur.execute('SELECT * FROM accounts WHERE aid=4')
+        self.assertEqual([(4, 'Neuer')], self.cur.fetchall())
 
     def test_add_credit(self):
         self.buildDatabase()
@@ -154,14 +154,14 @@ class TestBimiBase(unittest.TestCase):
 
         # Empty DB test
         self.bb.add_credit(2, -100)
-        self.cur.execute("SELECT tid,aid,did,count,value FROM transacts WHERE tid=1")
+        self.cur.execute('SELECT tid,aid,did,count,value FROM transacts WHERE tid=1')
         self.assertEqual([(1, 2, 0, 1, -100)], self.cur.fetchall())
 
         # Populated DB test
         self.populateDatabase()
 
         self.bb.add_credit(2, -100)
-        self.cur.execute("SELECT tid,aid,did,count,value FROM transacts WHERE tid=5")
+        self.cur.execute('SELECT tid,aid,did,count,value FROM transacts WHERE tid=5')
         self.assertEqual([(5, 2, 0, 1, -100)], self.cur.fetchall())
 
     def test_add_drink(self):
@@ -169,9 +169,9 @@ class TestBimiBase(unittest.TestCase):
         self.populateDatabase()
         self.bb = bimibase.BimiBase(TestBimiBase.db_path)
 
-        self.bb.add_drink(["Red Bull", 85, 80, 8, 100, 0, True])
-        self.cur.execute("SELECT * FROM drinks WHERE did=4")
-        self.assertEqual([(4, "Red Bull", 85, 80, 8, 100, 0, False, True)], self.cur.fetchall())
+        self.bb.add_drink(['Red Bull', 85, 80, 8, 100, 0, True])
+        self.cur.execute('SELECT * FROM drinks WHERE did=4')
+        self.assertEqual([(4, 'Red Bull', 85, 80, 8, 100, 0, False, True)], self.cur.fetchall())
 
     def test_consume_drinks_multiple_dids(self):
         self.buildDatabase()
@@ -180,15 +180,15 @@ class TestBimiBase(unittest.TestCase):
 
         self.bb.consume_drinks(2, [(1, 10), (2, 20), (2, 30)])
 
-        self.cur.execute("SELECT * FROM drinks WHERE did in (1,2) ORDER BY did ASC")
-        self.assertEqual([(1, "Fanta", 100, 85, 15, 0, 25, False, True),
-                         (2, "Cola", 100, 85, 15, 0, 52, False, False)],
+        self.cur.execute('SELECT * FROM drinks WHERE did in (1,2) ORDER BY did ASC')
+        self.assertEqual([(1, 'Fanta', 100, 85, 15, 0, 25, False, True),
+                         (2, 'Cola', 100, 85, 15, 0, 52, False, False)],
                          self.cur.fetchall())
 
-        self.cur.execute("SELECT * FROM kings WHERE aid=2")
+        self.cur.execute('SELECT * FROM kings WHERE aid=2')
         self.assertEqual([(2, 1, 10), (2, 2, 50)], self.cur.fetchall())
 
-        self.cur.execute("SELECT tid,aid,did,count,value FROM transacts WHERE tid=5")
+        self.cur.execute('SELECT tid,aid,did,count,value FROM transacts WHERE tid=5')
         self.assertEqual([(5, 2, 1, 10, -100), (5, 2, 2, 50, -100)], self.cur.fetchall())
 
     def test_del_account(self):
@@ -198,13 +198,13 @@ class TestBimiBase(unittest.TestCase):
 
         self.bb.del_account(1)
 
-        self.cur.execute("SELECT * FROM accounts WHERE aid=1")
+        self.cur.execute('SELECT * FROM accounts WHERE aid=1')
         self.assertEqual([], self.cur.fetchall())
 
-        self.cur.execute("SELECT * FROM kings WHERE aid=1")
+        self.cur.execute('SELECT * FROM kings WHERE aid=1')
         self.assertEqual([], self.cur.fetchall())
 
-        self.cur.execute("SELECT * FROM transacts WHERE aid=1")
+        self.cur.execute('SELECT * FROM transacts WHERE aid=1')
         self.assertEqual([], self.cur.fetchall())
 
     def test_del_drink(self):
@@ -214,8 +214,8 @@ class TestBimiBase(unittest.TestCase):
 
         self.bb.del_drink(1)
 
-        self.cur.execute("SELECT * FROM drinks WHERE did=1")
-        self.assertEqual([(1, "Fanta", 100, 85, 15, 5, 15, True, False)], self.cur.fetchall())
+        self.cur.execute('SELECT * FROM drinks WHERE did=1')
+        self.assertEqual([(1, 'Fanta', 100, 85, 15, 5, 15, True, False)], self.cur.fetchall())
 
     def test_undo_transactions(self):
         self.buildDatabase()
@@ -230,19 +230,19 @@ class TestBimiBase(unittest.TestCase):
         self.bb.undo_transaction(1)
 
         for item in ['drinks', 'kings', 'transacts']:
-            self.cur.execute("SELECT * FROM "+item)
+            self.cur.execute('SELECT * FROM ' + item)
             self.assertEqual(target[item], self.cur.fetchall())
 
         self.bb.undo_transaction(3)
 
-        target['drinks'][0] = (1, "Fanta", 100, 85, 15, 10, 10, False, True)
-        target['drinks'][2] = (3, "Geloescht", 20, 19, 25, 300, 0, True, False)
+        target['drinks'][0] = (1, 'Fanta', 100, 85, 15, 10, 10, False, True)
+        target['drinks'][2] = (3, 'Geloescht', 20, 19, 25, 300, 0, True, False)
         target['kings'][2] = (3, 1, 0)
         target['kings'][3] = (3, 3, 0)
         target['transacts'].pop(1)
         target['transacts'].pop(1)
         for item in ['drinks', 'kings', 'transacts']:
-            self.cur.execute("SELECT * FROM "+item)
+            self.cur.execute('SELECT * FROM ' + item)
             self.assertEqual(target[item], self.cur.fetchall())
 
     def test_drinks(self):
@@ -268,8 +268,8 @@ class TestBimiBase(unittest.TestCase):
 
         self.bb.set_drink(2, ['fritz-kola', 101, 86, 16, 24, 3, True])
 
-        self.cur.execute("SELECT * FROM drinks WHERE did=2")
-        self.assertEqual([(2, "fritz-kola", 101, 86, 16, 24, 3, False, True)], self.cur.fetchall())
+        self.cur.execute('SELECT * FROM drinks WHERE did=2')
+        self.assertEqual([(2, 'fritz-kola', 101, 86, 16, 24, 3, False, True)], self.cur.fetchall())
 
     def test_kings(self):
         self.buildDatabase()
@@ -282,12 +282,12 @@ class TestBimiBase(unittest.TestCase):
         self.populateDatabase()
 
         # Testcase: Same drink name but different dids
-        self.bb.add_drink(["MultiDrink", 4, 0, 0, 0, 0, True])
-        self.bb.add_drink(["MultiDrink", 5, 0, 0, 0, 0, True])
+        self.bb.add_drink(['MultiDrink', 4, 0, 0, 0, 0, True])
+        self.bb.add_drink(['MultiDrink', 5, 0, 0, 0, 0, True])
         self.bb.consume_drinks(2, [(4, 4), (5, 5)])
 
-        expected_result = [("Max Mustermann", "MultiDrink", 9),
-                           ("Noob", "Fanta", 10)]
+        expected_result = [('Max Mustermann', 'MultiDrink', 9),
+                           ('Noob', 'Fanta', 10)]
         self.assertEqual(expected_result, self.bb.kings())
 
     def test_transactions(self):
@@ -297,6 +297,6 @@ class TestBimiBase(unittest.TestCase):
 
         # tid, drinks.name, count, value, date)
         check_list = [(1, None, 1, 1000, self.d1),
-                      (4, "Fanta", 10, 100, self.d4),
-                      (4, "Cola", 2, 100, self.d4)]
+                      (4, 'Fanta', 10, 100, self.d4),
+                      (4, 'Cola', 2, 100, self.d4)]
         self.assertEqual(check_list, self.bb.transactions(1))

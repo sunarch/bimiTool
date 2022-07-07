@@ -25,13 +25,13 @@ import sys
 import urllib.parse
 
 import gi
-gi.require_version("Gtk", "3.0")
+gi.require_version('Gtk', '3.0')
 try:
     from gi.repository import Gtk, Pango
 except ImportError:
-    print("--------------------------------------------------------------------------")
-    print("| Check your python GTK+3 setup! (Debian/Ubuntu: install gir1.2-gtk-3.0) |")
-    print("--------------------------------------------------------------------------")
+    print('--------------------------------------------------------------------------')
+    print('| Check your python GTK+3 setup! (Debian/Ubuntu: install gir1.2-gtk-3.0) |')
+    print('--------------------------------------------------------------------------')
     sys.exit(1)
 
 from bimibase import BimiBase
@@ -86,7 +86,7 @@ class BiMiTool:
                    'edit_drink': self.pop_edit_drink_window,
 
                    'generate_mail': self.show_summary_mail,
-                   # "preferences_activate": self.prefsPopup,
+                   # 'preferences_activate': self.prefsPopup,
                    'main_window_destroyed': Gtk.main_quit,
                    'quit_activate': Gtk.main_quit}
             self.gui.connect_signals(dic)
@@ -99,14 +99,14 @@ class BiMiTool:
         self.transactions_context_menu = self.gui.get_object('transactions_menu')
 
         # Create column-headers and add accounts from database into rows
-        self.accounts_view = self.gui.get_object("accounts_view")
+        self.accounts_view = self.gui.get_object('accounts_view')
         self.accounts_view.set_model(self.accounts_list)
         self.accounts_name_col = Gtk.TreeViewColumn('Account name', Gtk.CellRendererText(), text=1)
         self.accounts_view.append_column(self.accounts_name_col)
         self.update_accounts_view()
 
         # Create column headers for drinks_view
-        self.drinks_view = self.gui.get_object("drinks_view")
+        self.drinks_view = self.gui.get_object('drinks_view')
         self.drinks_view.set_model(self.drinks_list)
         col_names = ['Name', 'Sales Price', 'Purchase Price', 'Deposit', 'Full Bottles', 'Empty Bottles', 'Kings']
         render_cols = [1, 3, 5, 7, 8, 9, 10]
@@ -232,7 +232,7 @@ class BiMiTool:
     def consume_drinks(self, widget):
         lstore, it = self.accounts_view.get_selection().get_selected()
         if it is None:
-            self._logger.info("No account selected, can't add drinks :(")
+            self._logger.info('No account selected, can\'t add drinks :(')
             return
 
         dids_amounts = []
@@ -342,7 +342,7 @@ class BiMiTool:
                         try:
                             insert = str(parts[0]) + str(parts[2]).format(name=item[0], drink=item[1], amount=item[2])
                         except Exception as err:
-                            self._logger.error("Line %s in file %s is not as expected! [err: %s]", str(i+1), BimiConfig.option('mail_path'), err)
+                            self._logger.error('Line %s in file %s is not as expected! [err: %s]', str(i+1), BimiConfig.option('mail_path'), err)
                             return
                         mail_body += insert + '\n'
                 else:
@@ -369,7 +369,7 @@ class BiMiTool:
                         try:
                             insert = parts[0] + parts[2].format(name=item[0], balance=item[1])
                         except Exception as err:
-                            self._logger.error("'$accInfos:' line in %s file is broken! [err: %s]", BimiConfig.option('mail_path'), err)
+                            self._logger.error('\'$accInfos:\' line in %s file is broken! [err: %s]', BimiConfig.option('mail_path'), err)
                             return
                         mail_body += insert + '\n'
                 else:
@@ -410,9 +410,9 @@ class BiMiTool:
 
         # Check which program to start
         if mail_program == 'icedove' or mail_program == 'thunderbird':
-            process = subprocess.Popen([mail_program, "-compose", mailto_url], stdout=subprocess.PIPE)
+            process = subprocess.Popen([mail_program, '-compose', mailto_url], stdout=subprocess.PIPE)
             if process.communicate()[0] != '':
-                self._logger.debug("%s: %s", mail_program, process.communicate()[0])
+                self._logger.debug('%s: %s', mail_program, process.communicate()[0])
         return mail_program
 
     def pop_add_acc_window(self, widget):
@@ -574,7 +574,7 @@ class BiMiTool:
             self.transactions_list.append([-1, 'Balance', str(total - BimiConfig.option('deposit')) + cur_symbol])
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
     # Parse arguments
     parser = argparse.ArgumentParser(add_help=True,
@@ -583,14 +583,14 @@ if __name__ == "__main__":
                         action='store_true',
                         default=False,
                         dest='debug',
-                        help="display debugging messages")
+                        help='display debugging messages')
     parser.add_argument('--config',
                         default=None,
-                        help="specify path to a config file",
+                        help='specify path to a config file',
                         type=str)
     parser.add_argument('--database',
                         default=None,
-                        help="specify path to a sqlite data-base file",
+                        help='specify path to a sqlite data-base file',
                         type=str)
     options = parser.parse_args()
 

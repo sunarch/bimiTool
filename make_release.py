@@ -24,19 +24,19 @@ import os
 import subprocess
 import sys
 
-git_rm_files = ["test_bimibase.py",
-                "run_unittest.py",
-                "make_release.py",
-                "session.vim"]
+git_rm_files = ['test_bimibase.py',
+                'run_unittest.py',
+                'make_release.py',
+                'session.vim']
 
-version_subs_files = ["CHANGELOG",
-                      "README"]
+version_subs_files = ['CHANGELOG',
+                      'README']
 
 # Parse arguments
 parser = argparse.ArgumentParser(add_help=True, description='Readies code base for realease')
 parser.add_argument('version_number',
                     default=None,
-                    help="Version number for substitution",
+                    help='Version number for substitution',
                     type=str)
 options = parser.parse_args()
 
@@ -45,10 +45,10 @@ script_dir = os.path.realpath(os.path.dirname(sys.argv[0]))
 # Substitute version tag with given string
 for item in version_subs_files:
     item = os.path.join(script_dir, item)
-    subprocess.call(["sed", "-i", "s:\$version\$:" + options.version_number + ":", item])
-    subprocess.call(["sed", "-i", "s:\$date\$:" + str(date.today()) + ":", item])
+    subprocess.call(['sed', '-i', 's:\$version\$:' + options.version_number + ':', item])
+    subprocess.call(['sed', '-i', 's:\$date\$:' + str(date.today()) + ':', item])
 
 # Remove files from git
 for item in git_rm_files:
-    process = subprocess.Popen(["git", "rm", item], stdout=subprocess.PIPE)
+    process = subprocess.Popen(['git', 'rm', item], stdout=subprocess.PIPE)
     sys.stdout.write(process.communicate()[0])
