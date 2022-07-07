@@ -136,7 +136,7 @@ class BiMiTool:
             cbox.pack_start(cell, True)
             cbox.add_attribute(cell, 'text', 11)
 
-            adjustment = Gtk.Adjustment(0, 0, 999, 1, 10, 0)
+            adjustment = Gtk.Adjustment(value=0, lower=0, upper=999, step_increment=1, page_increment=10, page_size=0)
             spinbutton = Gtk.SpinButton()
             spinbutton.set_adjustment(adjustment)
             spinbutton.set_numeric(True)
