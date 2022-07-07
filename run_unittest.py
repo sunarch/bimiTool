@@ -2,6 +2,7 @@
 # -*- coding: utf-8, vim: expandtab:ts=4 -*-
 # ----------------------------------------------------------------------------#
 #    Copyright 2012 Julian Weitz                                              #
+#    Copyright 2022 András Németh                                             #
 #                                                                             #
 #    This program is free software: you can redistribute it and/or modify     #
 #    it under the terms of the GNU General Public License as published by     #
