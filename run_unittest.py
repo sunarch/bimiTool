@@ -1,5 +1,5 @@
-#!/usr/bin/python
-# vim: set fileencoding=utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8, vim: expandtab:ts=4 -*-
 # ----------------------------------------------------------------------------#
 #    Copyright 2012 Julian Weitz                                              #
 #                                                                             #
