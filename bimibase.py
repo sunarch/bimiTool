@@ -131,7 +131,7 @@ class BimiBase:
         :return:
         """
 
-        self.cur.execute("INSERT INTO accounts VALUES(?,?)", [None, account_name.decode('utf-8')])
+        self.cur.execute("INSERT INTO accounts VALUES(?,?)", [None, account_name])
         self.dbcon.commit()
         if credit is not None:
             self.add_credit(self.cur.lastrowid, credit)
@@ -170,7 +170,7 @@ class BimiBase:
 
         nspdfek = [None] + nspdfek
         nspdfek.insert(7, False)
-        nspdfek[1] = nspdfek[1].decode('utf-8')
+        nspdfek[1] = nspdfek[1]
         self.cur.execute("INSERT INTO drinks VALUES(?,?,?,?,?,?,?,?,?)", nspdfek)
         self.dbcon.commit()
 
@@ -282,13 +282,13 @@ class BimiBase:
     def set_account_name(self, account_id, name):
         """Sets the name from account_id to name"""
 
-        self.cur.execute("UPDATE accounts SET name=? WHERE aid=?", [name.decode('utf-8'), account_id])
+        self.cur.execute("UPDATE accounts SET name=? WHERE aid=?", [name, account_id])
         self.dbcon.commit()
 
     def set_drink(self, drink_id, nspdfek=[]):
         """Sets columns of drinks table, depending on values in nspdfek"""
 
-        nspdfek[0] = nspdfek[0].decode('utf-8')
+        nspdfek[0] = nspdfek[0]
         if len(nspdfek) == 7:
             nspdfek.append(drink_id)
             self.cur.execute("UPDATE drinks SET name=?,\
