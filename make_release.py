@@ -16,8 +16,12 @@
 #    You should have received a copy of the GNU General Public License        #
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.    #
 # ----------------------------------------------------------------------------#
-import os, argparse, subprocess, sys
+
+import argparse
 from datetime import date
+import os
+import subprocess
+import sys
 
 git_rm_files = ["test_bimibase.py",
                 "run_unittest.py",

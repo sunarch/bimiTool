@@ -15,7 +15,13 @@
 #    You should have received a copy of the GNU General Public License        #
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.    #
 # ----------------------------------------------------------------------------#
-import unittest, datetime, os, logging, bimibase
+
+import datetime
+import logging
+import os
+import unittest
+
+import bimibase
 
 try:
     from pysqlite2 import dbapi2 as sqlite3

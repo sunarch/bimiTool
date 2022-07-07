@@ -15,7 +15,11 @@
 #    You should have received a copy of the GNU General Public License        #
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.    #
 # ----------------------------------------------------------------------------#
-import os, sys, datetime, logging
+
+import datetime
+import logging
+import os
+import sys
 
 try:
     from pysqlite2 import dbapi2 as sqlite3

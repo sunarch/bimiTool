@@ -15,10 +15,11 @@
 #    You should have received a copy of the GNU General Public License        #
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.    #
 # ----------------------------------------------------------------------------#
+
+from copy import copy, deepcopy
+import logging
 import os
 import sys
-import logging
-from copy import copy, deepcopy
 
 try:
     import yaml
